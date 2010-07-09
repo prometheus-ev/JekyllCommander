@@ -1,0 +1,24 @@
+<form action="/page" method="post" enctype="">
+  <p>
+    Title (english):<br />
+    <input type="text" size="50" name="title">
+  </p>
+
+  <p>
+    <input type="checkbox" checked name="multilang" value="1"> Should this page be multilingual?
+    <input type="checkbox" checked name="render" value="1"> Should this page be rendered by jekyll?
+  </p>
+
+  <p>
+    Which markup language do you want?<br />
+    <select name="markup">
+      <option>textile</option>
+      <option>markdown</option>
+      <option>html</option>
+    </select>
+  </p>
+
+  <p>
+    <input type="submit" value="Create">
+  </p>
+</form>
