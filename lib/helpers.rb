@@ -63,7 +63,11 @@ helpers do
   end
 
   def chdir(path)
-    $pwd = session[:pwd] = File.directory?(path) ? path : session[:pwd]
+    if File.directory?(path) && File.directory?(path)
+      $pwd = session[:pwd] = path
+    else
+      $pwd = session[:pwd] = options.jekyll_root
+    end
   end
 
   def relative_pwd
