@@ -14,7 +14,7 @@ require 'lib/partials'
 require 'lib/routes'
 
 configure :development do
-  set :jekyll_root, '/home/arne/Dropbox/src/prometheus_homepage_test'
+  set :jekyll_root, '/path/to/our/homepage'
   set :preview    , 'http://0.0.0.0'
   set :self_url   , 'http://0.0.0.0:4567'
 end
