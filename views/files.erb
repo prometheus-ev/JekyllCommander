@@ -1,5 +1,5 @@
 <ul>
   <% for file in @files %>
-    <li><%= link_to_file(file) %></li>
+    <li<%= ' class="current"' if file == @file %>><%= link_to_file(file) %></li>
   <% end %>
 </ul>

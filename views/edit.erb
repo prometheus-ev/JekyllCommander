@@ -5,31 +5,25 @@
   <%= link_to_preview(@page) %>
 </p>
 
-<form method="post" action="/page">
-  <input type="hidden" name="_method" value="put" />
-  <input type="hidden" name="filename" value="<%= @filename || @page.filename %>" />
+<%= form :put, request.path %>
   <% if @page.render? %>
     <%= header_fields(@page.header(@lang)) %>
   <% end %>
 
   <p>
-    Body:<br />
-    <textarea cols="60" rows="20" name="<%= "body" %>"><%= @page.body(@lang) %></textarea>
+    <label for="page_body">Body:</label><br />
+    <textarea name="body" id="page_body" rows="20" cols="60"><%= @page.body(@lang) %></textarea>
   </p>
 
   <p>
-    Slug:<br />
-    <input type="text" size="50" name="slug" value="<%= @page.slug %>">
+    <label for="page_slug">Slug:</label><br />
+    <input type="text" name="slug" id="page_slug" value="<%= @page.slug %>" size="50">
   </p>
 
-  <p><input type="submit" value="Save"> |
-  <%= link_to 'Cancel', options.self_url + '/' %></p>
+  <p>
+    <input type="submit" value="Save page">
+    | <%= link_to 'Cancel', relative_url %>
+  </p>
 </form>
 
-
-<form method="post" action="/page">
-  <input type="hidden" name="_method" value="delete" />
-  <input type="hidden" name="filename" value="<%= @page.filename %>" />
-  <p><button type="submit">Delete</button>
-  <!-- <input type="checkbox" checked name="all_lang" value="1"> Delete in all languages</p> -->
-</form>
+<%= form_delete 'page', request.path %>

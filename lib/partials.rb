@@ -1,3 +1,3 @@
 get 'files' do
-    erb :files
+  erb :files
 end

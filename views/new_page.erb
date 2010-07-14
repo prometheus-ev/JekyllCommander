@@ -1,24 +1,34 @@
-<form action="/page" method="post" enctype="">
+<%= form_new :page %>
   <p>
-    Title (english):<br />
-    <input type="text" size="50" name="title">
+    <label for="page_title">Title (english):</label><br />
+    <input type="text" name="title" id="page_title" size="50">
   </p>
 
   <p>
-    <input type="checkbox" checked name="multilang" value="1"> Should this page be multilingual?
-    <input type="checkbox" checked name="render" value="1"> Should this page be rendered by jekyll?
+    <input type="checkbox" name="multilang" id="page_multilang" value="1" checked="checked">
+    <label for="page_multilang">Should this page be multilingual?</label>
   </p>
 
   <p>
-    Which markup language do you want?<br />
-    <select name="markup">
-      <option>textile</option>
-      <option>markdown</option>
-      <option>html</option>
+    <input type="checkbox" name="render" id="page_render" value="1" checked="checked">
+    <label for="page_render">Should this page be rendered by Jekyll?</label>
+    <br />
+    <label for="page_layout">If so, which layout do you want?</label>
+    <%= render_layout_header %>
+  </p>
+
+  <p>
+    <label for="page_markup">Which markup language do you want?</label>
+    <select name="markup" id="page_markup">
+    <% default = Page::DEFAULT_MARKUP %>
+    <% for markup in Page::MARKUPS %>
+      <option<%= ' selected="selected"' if markup == default %>><%= markup %></option>
+    <% end %>
     </select>
   </p>
 
   <p>
-    <input type="submit" value="Create">
+    <input type="submit" value="Create page">
+    | <%= link_to 'Cancel', relative_url %>
   </p>
 </form>

@@ -1,114 +1,142 @@
-get '/' do
+before do
+  @path      = request.path_info
+  @real_path = real_path(@path)
+
+  @file = File.basename(@path) if File.file?(@real_path)
+end
+
+get '/*;new_:type' do
+  erb :"new_#{params[:type]}"
+end
+
+get '/*' do
+  render_folder || render_page || begin
+    flash :error => 'File not found.'
+    redirect url_for('/')
+  end
+end
+
+post '/*' do
+  if File.directory?(@real_path)
+    send("create_#{params[:type]}")
+  else
+    flash :error => 'No such folder.'
+    redirect url_for('/')
+  end
+end
+
+put '/*' do
+  if @page = Page.load(@real_path)
+    extract_language
+
+    attributes = params.reject { |key, _| key == '_method' || key == 'splat' }
+
+    if @page.update(attributes, @lang)
+      flash :notice => 'Successfully updated.' if @page.write!
+    else
+      flash :error => @page.errors
+    end
+
+    erb :edit
+  else
+    flash :error => 'Unable to load file.'
+    erb :index
+  end
+end
+
+delete '/*' do
+  if File.directory?(@real_path)
+    delete_folder
+  elsif File.file?(@real_path)
+    delete_page
+  end
+end
+
+def render_folder
+  return unless File.directory?(@real_path)
+
+  chdir(@real_path)
+  get_files
+
   erb :index
 end
 
-######################################################################
-# Page routes                                                        #
-######################################################################
+def render_page
+  return unless File.file?(@real_path)
 
-post '/page' do
-  options = {
-    :multilang => !params[:multilang].nil?,
-    :render    => !params[:render].nil?,
-    :markup    => params[:markup]
-  }
+  chdir(File.dirname(@real_path))
+  get_files
 
-  @page = Page.new(params[:title], options)
-
-  if @page.render?
-    @page.header[:layout] = 'default' # TODO: Should be continued
-  end
-
-  if @page.valid? && @page.write
-    session[:flash] = 'Page successfully created.'
-    files_of
-    @lang = Page.languages.first
-    @filename = @page.filename(@lang)
+  if @page = Page.load(@real_path)
+    extract_language
     erb :edit
   else
-    session[:flash] = @page.errors.join("<br />\n")
-    files_of
+    flash :error => 'Unable to load file.'
+    erb :index
+  end
+end
+
+def create_folder
+  name = params[:name]
+
+  unless name.nil? || name.empty?
+    path = File.join(@path, name)
+    real_path = real_path(path)
+
+    unless File.exist?(real_path)
+      Dir.mkdir(real_path)
+      redirect url_for(path)
+
+      return
+    else
+      flash :error => 'Already exists.'
+    end
+  else
+    flash :error => 'You have to name it!'
+  end
+
+  erb :new_folder
+end
+
+def create_page
+  @page = Page.new(@real_path, params[:title], [
+    [:multilang, !params[:multilang].nil?],
+    [:render,    !params[:render].nil?],
+    [:markup,    params[:markup]],
+    [:layout,    params[:layout] || 'default']
+  ])
+
+  if @page.write
+    @lang = Page::DEFAULT_LANGUAGE
+
+    flash :notice => 'Page successfully created.'
+    get_files
+
+    erb :edit
+  else
+    flash :error => @page.errors
+    get_files
+
     erb :new_page
   end
 end
 
-put '/page' do
-  # TODO: Insert code here!
-  @filename = params[:filename]
-  if @page = Page.load(File.join($pwd, @filename))
-    if lang = lang_from_filename(@filename)
-      @lang = lang
-    else
-      @lang = Page.languages.first
-    end
-    attributes = params.delete_if { |k, _| k == '_method' || k == 'filename' }
-    if new_page = @page.update(attributes, @lang)
-      @page = new_page
-      session[:flash] = 'Successfully updated.' if @page.write!
-    else
-      session[:flash] = new_page.errors.join("<br />\n")
-    end
-    erb :edit
-  else
-    session[:flash] = 'Unable to load file.'
-    erb :index
-  end
+def delete_folder
+  FileUtils.rm_r(@real_path)
+  redirect url_for(File.dirname(relative_pwd))
 end
 
-delete '/page' do
-  path = File.join($pwd, params[:filename])
-  if page = Page.load(path)
-    session[:flash] = page.errors.join("<br />\n") unless page.destroy
+def delete_page
+  if page = Page.load(@real_path)
+    if page.destroy
+      redirect url_for(relative_pwd)
+      return
+    else
+      flash :error => page.errors
+    end
   else
-    session[:flash] = 'Unable to load file.'
+    flash :error => 'Unable to load file.'
   end
-  files_of
+
   erb :index
-end
-
-get '/edit/:filename' do
-  @filename = params[:filename]
-  if @page = Page.load(File.join($pwd, @filename))
-    if lang = lang_from_filename(@filename)
-      @lang = lang
-    else
-      @lang = Page.languages.first
-    end
-    erb :edit
-  else
-    session[:flash] = 'Unable to load file.'
-    erb :index
-  end
-end
-
-######################################################################
-# Directory routes                                                   #
-######################################################################
-
-get '/chdir/:dir' do
-  if params[:dir] == '__up'
-    dir = $pwd == options.jekyll_root ? $pwd : $pwd.match(/(^.+)\/.+$/)[1]
-  else
-    dir = File.join($pwd, params[:dir])
-  end
-  files_of if chdir(dir)
-  erb :index
-end
-
-get '/new/:file_type' do
-  erb params[:file_type] == 'page' ? :new_page : :new_folder
-end
-
-post '/folder' do
-  if params[:name].nil? || params[:name].empty?
-    session[:flash] = 'You have to name it!'
-    erb :new_folder
-  elsif File.exist?(path = File.join($pwd, params[:name]))
-    session[:flash] = "A file named <em>#{params[:name]}</em> already exists."
-    erb :new_folder
-  else
-    chdir(path) if Dir.mkdir(path)
-    files_of
-    erb :index
-  end
 end
