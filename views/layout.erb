@@ -9,6 +9,8 @@
      - <%= relative_pwd %><%= " (#{@file})" if @file %>
    </title>
 
+   <script src="<%= url_for '/js/prototype.js' %>" type="text/javascript"></script>
+   <script src="<%= url_for '/js/application.js' %>" type="text/javascript"></script>
    <link rel="stylesheet" href="<%= url_for '/css/screen.css' %>" type="text/css" media="screen, projection" />
 </head>
 <body>
@@ -20,8 +22,8 @@
       <p><%= partial :files %></p>
 
       <p>
-        <%= link_to 'New page',   relative_url(';new_page') %> |
-        <%= link_to 'New folder', relative_url(';new_folder') %>
+        <%= link_to 'New page',   relative_path(';new_page') %> |
+        <%= link_to 'New folder', relative_path(';new_folder') %>
 
         <%= form_delete 'folder' %>
       </p>

@@ -1,18 +1,18 @@
 <p>
   <% if @page.multilang? %>
-    <%= language_links(@page, @lang) %> |
+    <%= language_links(@page) %> |
   <% end %>
   <%= link_to_preview(@page) %>
 </p>
 
-<%= form :put, request.path %>
+<%= form :put, relative_path(@file) %>
   <% if @page.render? %>
-    <%= header_fields(@page.header(@lang)) %>
+    <%= header_fields(@page.header) %>
   <% end %>
 
   <p>
     <label for="page_body">Body:</label><br />
-    <textarea name="body" id="page_body" rows="20" cols="60"><%= @page.body(@lang) %></textarea>
+    <textarea name="body" id="page_body" rows="20" cols="60"><%= @page.body %></textarea>
   </p>
 
   <p>
@@ -22,8 +22,8 @@
 
   <p>
     <input type="submit" value="Save page">
-    | <%= link_to 'Cancel', relative_url %>
+    | <%= link_to 'Cancel', relative_path %>
   </p>
 </form>
 
-<%= form_delete 'page', request.path %>
+<%= form_delete 'page', relative_path(@file) %>

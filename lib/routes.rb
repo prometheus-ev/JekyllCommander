@@ -5,6 +5,10 @@ before do
   @file = File.basename(@path) if File.file?(@real_path)
 end
 
+get '' do
+  redirect url_for('/')
+end
+
 get '/*;new_:type' do
   erb :"new_#{params[:type]}"
 end
@@ -27,11 +31,9 @@ end
 
 put '/*' do
   if @page = Page.load(@real_path)
-    extract_language
-
     attributes = params.reject { |key, _| key == '_method' || key == 'splat' }
 
-    if @page.update(attributes, @lang)
+    if @page.update(attributes, Page.lang(@path))
       flash :notice => 'Successfully updated.' if @page.write!
     else
       flash :error => @page.errors
@@ -68,7 +70,6 @@ def render_page
   get_files
 
   if @page = Page.load(@real_path)
-    extract_language
     erb :edit
   else
     flash :error => 'Unable to load file.'
@@ -107,12 +108,8 @@ def create_page
   ])
 
   if @page.write
-    @lang = Page::DEFAULT_LANGUAGE
-
     flash :notice => 'Page successfully created.'
-    get_files
-
-    erb :edit
+    redirect relative_url(@page.filename)
   else
     flash :error => @page.errors
     get_files
@@ -123,13 +120,13 @@ end
 
 def delete_folder
   FileUtils.rm_r(@real_path)
-  redirect url_for(File.dirname(relative_pwd))
+  redirect relative_url('..')
 end
 
 def delete_page
   if page = Page.load(@real_path)
     if page.destroy
-      redirect url_for(relative_pwd)
+      redirect relative_url
       return
     else
       flash :error => page.errors

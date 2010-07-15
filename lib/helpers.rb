@@ -13,12 +13,12 @@ helpers do
     erb page, options.merge(:layout => false)
   end
 
-  def form(method = :post, url = relative_url)
+  def form(method = :post, url = relative_path)
     unless %w[get post].include?(method.to_s)
       method_override, method = method, :post
     end
 
-    form = %Q{<form action="#{url}" method="post">}
+    form = %Q{<form action="#{url_for(url)}" method="post">}
     form << %Q{\n<input type="hidden" name="_method" value="#{method_override}" />} if method_override
     form
   end
@@ -27,7 +27,7 @@ helpers do
     form + %Q{\n<input type="hidden" name="type" value="#{type}" />}
   end
 
-  def form_delete(type, url = relative_url)
+  def form_delete(type, url = relative_path)
     onclick = %q{onclick='if(!confirm("Are your sure?"))return false;'}
     form(:delete, url) + %Q{\n<p><button type="submit" #{onclick}>Delete #{type}</button></p>\n</form>}
   end
@@ -36,8 +36,8 @@ helpers do
     path.start_with?('/') ? "#{request.script_name}#{path}".gsub(%r{/+}, '/') : path
   end
 
-  def url_for_file(*file)
-    url_for("/#{u2(File.join(file))}")
+  def path_for_file(*file)
+    File.expand_path(u2(File.join('/', file)), '/')
   end
 
   def link_to(name, url, html_options = '')
@@ -45,7 +45,7 @@ helpers do
   end
 
   def link_to_file(file, name = file)
-    path, url = File.join(pwd, file), url_for_file(relative_pwd, file)
+    path, url = File.join(pwd, file), relative_path(file)
 
     if File.directory?(path)
       link_to("#{name}/", url)
@@ -56,7 +56,7 @@ helpers do
     end
   end
 
-  def language_links(page, current_lang)
+  def language_links(page, current_lang = page.lang)
     Page::LANGUAGES.map { |lang|
       if lang == current_lang
         lang.upcase
@@ -67,7 +67,7 @@ helpers do
   end
 
   def link_to_preview(page)
-    link_to('Preview', File.join(options.preview, relative_pwd, page.slug), 'target="_blank"')
+    link_to('Preview', File.join(options.preview, relative_path(page.slug)), 'target="_blank"')
   end
 
   def flash(hash)
@@ -134,8 +134,12 @@ helpers do
     @relative_pwd ||= pwd.sub(%r{\A#{Regexp.escape(options.jekyll_root)}/?}, '/')
   end
 
+  def relative_path(*args)
+    path_for_file(relative_pwd, *args)
+  end
+
   def relative_url(*args)
-    url_for_file(relative_pwd, *args)
+    url_for(relative_path(*args))
   end
 
   def real_path(path)
@@ -156,15 +160,11 @@ helpers do
     trail, dirs = [], relative_pwd.split('/'); dirs.shift
 
     until dirs.empty?
-      trail.unshift(link_to(dirs.last, url_for_file(dirs)))
+      trail.unshift(link_to(dirs.last, path_for_file(dirs)))
       dirs.pop
     end
 
     trail.unshift(link_to('ROOT', '/')).join(' / ')
-  end
-
-  def extract_language
-    @lang = Page.lang(@path)
   end
 
   #def git_status

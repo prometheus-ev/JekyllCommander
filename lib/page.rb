@@ -52,6 +52,9 @@ class Page
   def initialize(root, title = nil, options = {})
     @root, @title, @errors = root, title, []
 
+    # this one is essential, so we set it first
+    @lang = Array(options.to_a.assoc(:lang)).last || DEFAULT_LANGUAGE
+
     options.each { |key, value| send("#{key}=", value) }
   end
 
@@ -118,7 +121,11 @@ class Page
   LANGUAGES.each { |lang|
     class_eval <<-EOT, __FILE__, __LINE__ + 1
       def header_#{lang}=(value)
-        (@header_#{lang} ||= {}).update(value.symbolize_keys)
+        if value.is_a?(Hash)
+          (@header_#{lang} ||= {}).update(value.symbolize_keys)
+        else
+          @header_#{lang} = value
+        end
       end
     EOT
   }
