@@ -117,7 +117,7 @@ helpers do
     layouts.sort!
 
     layouts.each { |layout|
-      select << %Q{\n<option#{ ' selected="selected"' if layout == value }>#{layout}</option>}
+      select << %Q{\n<option value="#{layout}"#{ ' selected="selected"' if layout == value }>#{layout.humanize}</option>}
     }
 
     select << "\n</select>"

@@ -13,6 +13,17 @@
   <p>
     <label for="page_body">Body:</label><br />
     <textarea name="body" id="page_body" rows="20" cols="60"><%= @page.body %></textarea>
+    <br />
+    <small>
+    <% if @page.markup? %>
+      <strong><%= @page.markup.humanize %>:</strong>
+      <%= Page::MARKUP_LINKS[@page.markup.to_sym].map { |name, link|
+        %Q{<a href="#{link}" target="_blank">#{name}</a>}
+      }.join(' | ') %>
+    <% else %>
+      <strong>No markup</strong>
+    <% end %>
+    </small>
   </p>
 
   <p>

@@ -22,7 +22,7 @@
     <select name="markup" id="page_markup">
     <% default = Page::DEFAULT_MARKUP %>
     <% for markup in Page::MARKUPS %>
-      <option<%= ' selected="selected"' if markup == default %>><%= markup %></option>
+      <option value="<%= markup %>"<%= ' selected="selected"' if markup == default %>><%= markup.humanize %></option>
     <% end %>
     </select>
   </p>

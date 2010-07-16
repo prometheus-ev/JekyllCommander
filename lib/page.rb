@@ -26,7 +26,21 @@ class Page
   NO_MARKUP = 'none'; MARKUPS << NO_MARKUP
   DEFAULT_MARKUP = MARKUPS.first
 
-  EXT_RE = %r{\.([a-z]{2})(?:\.(\w+))?\z}
+  MARKUP_LINKS = {
+    :textile => [
+      %w[Syntax http://redcloth.org/hobix.com/textile/],
+      %w[Demo   http://textile.thresholdstate.com/]
+    ],
+    :markdown => [
+      %w[Syntax http://daringfireball.net/projects/markdown/syntax],
+      %w[Demo   http://daringfireball.net/projects/markdown/dingus]
+    ],
+    :html => [
+      %w[Syntax http://de.selfhtml.org/]
+    ]
+  }
+
+  EXT_RE = %r{(?:\.([a-z]{2}))?(?:\.(\w+))?\z}
 
   def self.lang(path)
     path =~ EXT_RE
@@ -135,7 +149,6 @@ class Page
   end
 
   def update(attributes = {}, lang = lang)
-    p attributes
     attributes.each { |key, value|
       if TRANSLATES_ATTRS.include?(key.to_s)
         send("#{key}_#{lang}=", value)
