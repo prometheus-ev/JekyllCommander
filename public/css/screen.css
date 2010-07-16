@@ -50,12 +50,25 @@ a:hover {
 
 #sidebar {
   float:            left;
-  width:            200px;
   border-right:     2px dashed gray;
+  width:            220px;
+  overflow:         auto;
+}
+
+#loginfo {
+  text-align:       right;
+  font-size:        85%;
+  padding-right:    5px;
+  margin-top:       0;
+  margin-bottom:    0;
+}
+
+#trail {
+  margin-top:       2px;
 }
 
 #main {
-  margin-left:      215px;
+  margin-left:      240px;
   padding:          10px;
 }
 

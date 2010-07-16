@@ -5,7 +5,7 @@
 <head>
    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
    <title>
-     Jekyll Commander [<%= File.basename(options.jekyll_root) %>]
+     Jekyll Commander [<%= repo_name %>]
      - <%= relative_pwd %><%= " (#{@file})" if @file %>
    </title>
 
@@ -17,9 +17,11 @@
   <div id="site">
 
     <div id="sidebar">
-      <p><%= trail %></p>
+      <p id="loginfo">[<%= repo_name %> : <%= user %>]</p>
 
-      <p><%= partial :files %></p>
+      <p id="trail"><%= trail %></p>
+
+      <p id="files"><%= partial :files %></p>
 
       <p>
         <%= link_to 'New page',   relative_path(';new_page') %> |
@@ -27,7 +29,6 @@
 
         <%= form_delete 'folder' %>
       </p>
-
     </div>
 
     <div id="main">

@@ -1,4 +1,5 @@
 require 'erb'
+require 'git'
 require 'active_support'
 
 helpers do
@@ -112,7 +113,7 @@ helpers do
   def render_layout_header(key = :layout, value = 'default')
     select = %Q{<select name="#{key}" id="page_#{key}">}
 
-    layouts = Dir[File.join(options.jekyll_root, '_layouts', '*.html')]
+    layouts = Dir[File.join(repo_root, '_layouts', '*.html')]
     layouts.map! { |layout| File.basename(layout, '.html') }
     layouts.sort!
 
@@ -125,13 +126,13 @@ helpers do
 
   def pwd
     @pwd ||= begin
-      path, root = session[:pwd], options.jekyll_root
-      path =~ %r{\A#{Regexp.escape(root)}(?:/|\z)} && File.directory?(path) ? path : root
+      path, re = session[:pwd], %r{\A#{Regexp.escape(repo_root)}(?:/|\z)}
+      path =~ re && File.directory?(path) ? path : repo_root
     end
   end
 
   def relative_pwd
-    @relative_pwd ||= pwd.sub(%r{\A#{Regexp.escape(options.jekyll_root)}/?}, '/')
+    @relative_pwd ||= pwd.sub(%r{\A#{Regexp.escape(repo_root)}/?}, '/')
   end
 
   def relative_path(*args)
@@ -143,7 +144,7 @@ helpers do
   end
 
   def real_path(path)
-    File.join(options.jekyll_root, path)
+    File.join(repo_root, path)
   end
 
   def chdir(path)
@@ -153,7 +154,7 @@ helpers do
   end
 
   def get_files(dir = pwd)
-    @files = Dir.entries(dir).sort - IGNORE
+    @files = Dir.entries(dir).sort - options.ignore
   end
 
   def trail
@@ -167,8 +168,36 @@ helpers do
     trail.unshift(link_to('ROOT', '/')).join(' / ')
   end
 
-  #def git_status
-  #  Dir.chdir(pwd) { $git.git.status }
-  #end
+  def user
+    @user ||= request.env['REMOTE_USER'] || begin
+      Etc.getpwuid(Process.euid).name
+    rescue ArgumentError  # can't find user for xy
+      ENV['USER'] || 'N.N.'
+    end
+  end
+
+  def repo_name
+    @repo_name ||= File.basename(options.repo, '.git')
+  end
+
+  def repo_root
+    session[:repo] ||= File.join(options.tmpdir,
+      "#{repo_name}-#{$$}-#{Time.now.to_f}-#{rand(0x1000)}")
+  end
+
+  def git
+    @git ||= Git.open(repo_root)
+  end
+
+  def ensure_repo
+    return if File.directory?(File.join(repo_root, '.git'))
+
+    session[:repo] = nil  # reset
+    base, name = File.split(repo_root)
+
+    git = Git.clone(options.repo, name, :path => base, :bare => false)
+    git.config('user.name',  user)
+    git.config('user.email', options.email % user)
+  end
 
 end

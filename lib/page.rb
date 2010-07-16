@@ -191,13 +191,13 @@ class Page
     File.open(path, 'w') { |f| f.puts to_s(lang) }
 
     #if git_add
-    #  Dir.chdir(root) { $git.add(File.basename(path)) }
+    #  git.add(File.basename(path))
     #  msg = "Added file for `#{title}'."
     #else
     #  msg = "Edited file for `#{title}'."
     #end
 
-    #Dir.chdir(root) { $git.index.commit(msg, [$git.commits.first], $git_actor, $git.tree) }
+    #git.commit(msg)
   end
 
   def to_s(lang = lang)

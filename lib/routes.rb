@@ -1,4 +1,7 @@
 before do
+  ensure_repo
+  get_files
+
   @path      = request.path_info
   @real_path = real_path(@path)
 
@@ -15,7 +18,7 @@ end
 
 get '/*' do
   render_folder || render_page || begin
-    flash :error => 'File not found.'
+    flash :error => "File not found `#{@real_path}'."
     redirect url_for('/')
   end
 end
@@ -24,7 +27,7 @@ post '/*' do
   if File.directory?(@real_path)
     send("create_#{params[:type]}")
   else
-    flash :error => 'No such folder.'
+    flash :error => "No such folder `#{@real_path}'."
     redirect url_for('/')
   end
 end
@@ -41,7 +44,7 @@ put '/*' do
 
     erb :edit
   else
-    flash :error => 'Unable to load file.'
+    flash :error => "Unable to load file `#{@real_path}'."
     erb :index
   end
 end
@@ -72,7 +75,7 @@ def render_page
   if @page = Page.load(@real_path)
     erb :edit
   else
-    flash :error => 'Unable to load file.'
+    flash :error => "Unable to load file `#{@real_path}'."
     erb :index
   end
 end
@@ -90,10 +93,10 @@ def create_folder
 
       return
     else
-      flash :error => 'Already exists.'
+      flash :error => "Can't create `#{real_path}' -- already exists."
     end
   else
-    flash :error => 'You have to name it!'
+    flash :error => "Required parameter `name' is missing!"
   end
 
   erb :new_folder
@@ -132,7 +135,7 @@ def delete_page
       flash :error => page.errors
     end
   else
-    flash :error => 'Unable to load file.'
+    flash :error => "Unable to load file `#{@real_path}'."
   end
 
   erb :index
