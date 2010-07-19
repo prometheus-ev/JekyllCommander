@@ -17,7 +17,7 @@
   <div id="site">
 
     <div id="sidebar">
-      <p id="loginfo">[<%= repo_name %> : <%= user %>]</p>
+      <p id="loginfo">[<%= repo_name %> : <strong><%= user %></strong>]</p>
 
       <p id="trail"><%= trail %></p>
 
@@ -25,7 +25,8 @@
 
       <p>
         <%= link_to 'New page',   relative_path(';new_page') %> |
-        <%= link_to 'New folder', relative_path(';new_folder') %>
+        <%= link_to 'New folder', relative_path(';new_folder') %> |
+        <%= link_to 'Status',     relative_path(';status') %>
 
         <%= form_delete 'folder' %>
       </p>

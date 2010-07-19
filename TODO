@@ -1,0 +1,24 @@
+* deploy
+  * configure web server
+    * content negotiation
+    * prefer-language
+    * ForceLanguagePriority (?)
+  * build _site
+    * from most recent tag
+    * or: from specified tag (allows "rollback")
+* preview
+  * cf. "deploy" (from working copy)
+* WYSIWYG editor (?)
+* git integration
+  * commit/push ("save")
+    * pull first! (handle conflicts)
+  * tag ("publish")
+    * pull first! (handle conflicts)
+    * version number (?)
+  * diff (versions/tags) (?)
+* housekeeping
+  * working copies
+    * locking
+    * remove stale ones
+  * full "undo" (discard working copy)
+* `grep TODO .`

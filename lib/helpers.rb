@@ -37,12 +37,27 @@ helpers do
     path.start_with?('/') ? "#{request.script_name}#{path}".gsub(%r{/+}, '/') : path
   end
 
+  def url_for_file(file)
+    url_for(path_for_file(file))
+  end
+
   def path_for_file(*file)
     File.expand_path(u2(File.join('/', file)), '/')
   end
 
-  def link_to(name, url, html_options = '')
-    %Q{<a href="#{url_for(url)}"#{' ' + html_options unless html_options.empty?}>#{name}</a>}
+  def link_to(name, url, html_options = {})
+    attributes = [%Q{href="#{url_for(url)}"}]
+
+    case html_options
+      when String
+        attributes << html_options
+      when Array
+        attributes.concat(html_options)
+      when Hash
+        attributes.concat(html_options.map { |k, v| %Q{#{k}="#{v}"} })
+    end unless html_options.empty?
+
+    "<a #{attributes.join(' ')}>#{name}</a>"
   end
 
   def link_to_file(file, name = file)
@@ -166,6 +181,10 @@ helpers do
     end
 
     trail.unshift(link_to('ROOT', '/')).join(' / ')
+  end
+
+  def splat
+    @splat ||= params[:splat].first
   end
 
   def user

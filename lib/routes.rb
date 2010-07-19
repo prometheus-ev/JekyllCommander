@@ -2,7 +2,7 @@ before do
   ensure_repo
   get_files
 
-  @path      = request.path_info
+  @path      = request.path_info.sub(/(?:;|%3B).*/, '')
   @real_path = real_path(@path)
 
   @file = File.basename(@path) if File.file?(@real_path)
@@ -16,6 +16,32 @@ get '/*;new_:type' do
   erb :"new_#{params[:type]}"
 end
 
+get '/*;status' do
+  @status, status = {}, git.status
+
+  re = %r{\A#{Regexp.escape(splat)}(.*)}
+
+  # TODO: "added" (see also revert)
+  %w[changed deleted untracked].each { |type|
+    @status[type] = status.send(type).map { |path, _| path[re, 1] }.compact
+  }
+
+  erb :status
+end
+
+get '/*;revert' do
+  # works for "changed" and "deleted"
+  # TODO: "added" and "untracked"
+
+  # git.checkout_index doesn't support '--index' option
+  git.lib.send(:command, 'checkout-index', %W[--index --force -- #{@real_path}])
+  redirect url_for_file(splat)
+end
+
+get '/*;*' do
+  not_found
+end
+
 get '/*' do
   render_folder || render_page || begin
     flash :error => "File not found `#{@real_path}'."
@@ -24,6 +50,8 @@ get '/*' do
 end
 
 post '/*' do
+  # TODO: git add
+
   if File.directory?(@real_path)
     send("create_#{params[:type]}")
   else
@@ -33,6 +61,8 @@ post '/*' do
 end
 
 put '/*' do
+  # TODO: git add
+
   if @page = Page.load(@real_path)
     attributes = params.reject { |key, _| key == '_method' || key == 'splat' }
 
@@ -50,6 +80,8 @@ put '/*' do
 end
 
 delete '/*' do
+  # TODO: git rm
+
   if File.directory?(@real_path)
     delete_folder
   elsif File.file?(@real_path)
@@ -93,7 +125,7 @@ def create_folder
 
       return
     else
-      flash :error => "Can't create `#{real_path}' -- already exists."
+      flash :error => "Folder `#{real_path}' already exists."
     end
   else
     flash :error => "Required parameter `name' is missing!"

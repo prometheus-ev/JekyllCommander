@@ -74,6 +74,8 @@ class Page
 
   def load
     translated { |lang|
+      next unless exist?(lang)
+
       body, header = PageFile.read_yaml(root, filename(lang))
 
       if header.empty?
@@ -174,7 +176,7 @@ class Page
     unless exist?
       write!
     else
-      @errors << 'Already exists.'
+      @errors << "Page `#{fullpath}' already exists."
       false
     end
   end
@@ -223,20 +225,25 @@ class Page
   end
 
   def valid?
-    @errors << 'Invalid slug.'   unless slug.is_a?(String) && !slug.empty?
-    @errors << 'Invalid title.'  unless title.is_a?(String) && !title.empty?
-    @errors << 'Invalid format.' unless MARKUPS.include?(@markup)
+    @errors << "Invalid slug `#{slug}'."     unless slug.is_a?(String) && !slug.empty?
+    @errors << "Invalid title `#{title}'."   unless title.is_a?(String) && !title.empty?
+    @errors << "Invalid format `#{markup}'." unless MARKUPS.include?(markup)
 
     @errors.empty?
   end
 
-  def exist?
-    translated { |lang| return true if File.exist?(fullpath(lang)) }
-    false
+  def exist?(lang = nil)
+    if lang
+      File.exist?(fullpath(lang))
+    else
+      translated { |lang| return true if File.exist?(fullpath(lang)) }
+      File.exist?(File.join(root, slug))
+    end
   end
 
   def errors
-    @errors.uniq
+    @errors.uniq!
+    @errors
   end
 
   def set_default_header
