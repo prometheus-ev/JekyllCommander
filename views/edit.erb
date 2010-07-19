@@ -1,9 +1,10 @@
 <p>
 <% if @page.multilang? %>
-    <%= language_links(@page) %>
+  <%= language_links(@page) %>
+  <% if options.preview %>|<% end %>
 <% end %>
 <% if options.preview %>
-  | <%= link_to_preview(@page) %>
+  <%= link_to_preview(@page) %>
 <% end %>
 </p>
 

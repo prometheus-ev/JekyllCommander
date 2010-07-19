@@ -9,6 +9,11 @@
 * preview
   * cf. "deploy" (from working copy)
 * WYSIWYG editor (?)
+* make files editable
+  * _config.yml
+  * atom.xml
+  * css/*.css
+  * javascripts/*.js
 * git integration
   * commit/push ("save")
     * pull first! (handle conflicts)

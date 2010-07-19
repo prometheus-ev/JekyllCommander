@@ -9,7 +9,7 @@ DEFAULT_OPTIONS = {
   :repo     => nil,
   :email    => '%s@localhost',
   :tmpdir   => File.expand_path('../tmp', __FILE__),
-  :ignore   => %w[. .. .git .gitignore _site],
+  :ignore   => %w[. .. .git .gitignore _site _plugins favicon.ico],
   :preview  => nil
 }
 
