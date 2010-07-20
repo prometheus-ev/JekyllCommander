@@ -17,18 +17,26 @@
   <div id="site">
 
     <div id="sidebar">
-      <p id="loginfo">[<%= repo_name %> : <strong><%= user %></strong>]</p>
+      <p id="loginfo">[
+        <%= options.site ? link_to(repo_name, options.site) : repo_name %>
+        : <strong><%= user %></strong>
+      ]</p>
 
       <p id="trail"><%= trail %></p>
 
       <p id="files"><%= partial :files %></p>
 
-      <p>
+      <p id="actions">
         <%= link_to 'New page',   relative_path(';new_page') %> |
         <%= link_to 'New folder', relative_path(';new_folder') %> |
         <%= link_to 'Status',     relative_path(';status') %>
 
         <%= form_delete 'folder' %>
+      </p>
+
+      <p id="site-actions">
+        <%= link_to 'Save changes', '/' + u(';save') %> |
+        <%= link_to 'Publish site', '/' + u(';publish') %>
       </p>
     </div>
 

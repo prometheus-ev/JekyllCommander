@@ -1,3 +1,4 @@
+require 'git'
 require 'active_support'
 require 'nuggets/util/i18n'
 require 'jekyll/convertible'
@@ -164,42 +165,30 @@ class Page
     self if valid?
   end
 
-  def destroy
+  def destroy(git = nil)
     translated(:fullpath).reject { |path|
-      File.delete(path)
+      git.remove(path) rescue nil if git
+      File.exist?(path) ? File.delete(path) : true
     }.each { |path|
       @errors << "Unable to delete file `#{path}'."
     }.empty?
   end
 
-  def write
+  def write(git = nil)
     unless exist?
-      write!
+      write!(git)
     else
       @errors << "Page `#{fullpath}' already exists."
       false
     end
   end
 
-  def write!
-    translated { |lang| write_file(lang) } if valid?
-  end
-
-  def write_file(lang = lang)
-    path = fullpath(lang)
-
-    #git_add = !File.exist?(path)
-
-    File.open(path, 'w') { |f| f.puts to_s(lang) }
-
-    #if git_add
-    #  git.add(File.basename(path))
-    #  msg = "Added file for `#{title}'."
-    #else
-    #  msg = "Edited file for `#{title}'."
-    #end
-
-    #git.commit(msg)
+  def write!(git = nil)
+    translated { |lang|
+      path = fullpath(lang)
+      File.open(path, 'w') { |f| f.puts to_s(lang) }
+      git.add(path) if git
+    } if valid?
   end
 
   def to_s(lang = lang)

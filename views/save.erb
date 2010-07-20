@@ -1,0 +1,29 @@
+<h2>Save changes</h2>
+
+<%= form_this %>
+  <label for="commit_msg">Please enter a descriptive summary of your changes (required):</label><br />
+  <input type="text" name="msg" id="commit_msg" value="<%= @msg %>" size="50" /><br /><br />
+  <input type="submit" value="Save changes" />
+</form>
+
+<hr />
+
+<table class="diff_stats">
+  <tr>
+    <td colspan="3">
+      <%= @diff_total[:files] %> file<%= 's' unless @diff_total[:files] == 1 %> changed,
+      <%= @diff_total[:insertions] %> insertions(+),
+      <%= @diff_total[:deletions] %> deletions(-)
+    </td>
+  </tr>
+<% for file, stats in @diff_stats[:files].sort %>
+  <% insertions, deletions = stats.values_at(:insertions, :deletions) %>
+  <tr>
+    <td><%= link_to_file file %></td>
+    <td class="num"><%= insertions + deletions %></td>
+    <td class="stat">
+      <span class="insertions"><%= '+' * insertions %></span><span class="deletions"><%= '-' * deletions %></span>
+    </td>
+  </tr>
+<% end %>
+</table>

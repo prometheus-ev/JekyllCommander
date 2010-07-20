@@ -11,7 +11,7 @@ helpers do
   end
 
   def partial(page, options = {})
-    erb page, options.merge(:layout => false)
+    erb :"_#{page}", options.merge(:layout => false)
   end
 
   def form(method = :post, url = relative_path)
@@ -19,9 +19,13 @@ helpers do
       method_override, method = method, :post
     end
 
-    form = %Q{<form action="#{url_for(url)}" method="post">}
+    form = %Q{<form action="#{url_for(url)}" method="#{method}">}
     form << %Q{\n<input type="hidden" name="_method" value="#{method_override}" />} if method_override
     form
+  end
+
+  def form_this(method = :post)
+    form(method, request.path)
   end
 
   def form_new(type)
@@ -165,6 +169,7 @@ helpers do
   def chdir(path)
     @pwd = @relative_pwd = nil
     session[:pwd] = path
+    get_files
     pwd
   end
 
@@ -200,8 +205,7 @@ helpers do
   end
 
   def repo_root
-    session[:repo] ||= File.join(options.tmpdir,
-      "#{repo_name}-#{$$}-#{Time.now.to_f}-#{rand(0x1000)}")
+    @repo_root ||= File.join(options.tmpdir, "#{repo_name}-#{u(user)}")
   end
 
   def git
@@ -211,7 +215,6 @@ helpers do
   def ensure_repo
     return if File.directory?(File.join(repo_root, '.git'))
 
-    session[:repo] = nil  # reset
     base, name = File.split(repo_root)
 
     git = Git.clone(options.repo, name, :path => base, :bare => false)

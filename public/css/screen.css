@@ -58,13 +58,18 @@ a:hover {
 #loginfo {
   text-align:       right;
   font-size:        85%;
-  padding-right:    5px;
+  padding-right:    6px;
   margin-top:       0;
   margin-bottom:    0;
 }
 
 #trail {
   margin-top:       2px;
+}
+
+#site-actions {
+  border-top:       2px dashed gray;
+  padding-top:      6px;
 }
 
 #main {
@@ -74,4 +79,39 @@ a:hover {
 
 li.current a {
   background-color: silver;
+}
+
+.diff_stats td.num {
+  text-align:       right;
+}
+
+.diff_stats td.stat {
+  font-family:      monospace;
+  font-weight:      bold;
+}
+
+.diff_stats .insertions {
+  color:            green;
+}
+
+.diff_stats .deletions {
+  color:            red;
+}
+
+.commit_log td {
+  font-size:        smaller;
+  vertical-align:   top;
+}
+
+.commit_log td.date,
+.commit_log td.author {
+  white-space:      nowrap;
+}
+
+.commit_log td.date {
+  color:            green;
+}
+
+.commit_log td.author {
+  color:            blue;
 }

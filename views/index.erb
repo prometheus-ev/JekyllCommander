@@ -1,3 +1,5 @@
-<h1>Jekyll Commander</h1>
-
-<p>at <code><%= @real_path || repo_root %></code></p>
+<% if @path == '/' %>
+  <h1>Jekyll Commander</h1>
+<% else %>
+  <h2>Index of <code><%= @path %></code></h2>
+<% end %>

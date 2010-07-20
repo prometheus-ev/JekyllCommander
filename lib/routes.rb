@@ -21,8 +21,7 @@ get '/*;status' do
 
   re = %r{\A#{Regexp.escape(splat)}(.*)}
 
-  # TODO: "added" (see also revert)
-  %w[changed deleted untracked].each { |type|
+  %w[added changed deleted untracked].each { |type|
     @status[type] = status.send(type).map { |path, _| path[re, 1] }.compact
   }
 
@@ -30,12 +29,72 @@ get '/*;status' do
 end
 
 get '/*;revert' do
-  # works for "changed" and "deleted"
-  # TODO: "added" and "untracked"
+  git.lib.reset_file(nil, :path_limiter => @real_path, :quiet => true)
+  git.checkout_index(:path_limiter => @real_path, :index => true, :force => true)
 
-  # git.checkout_index doesn't support '--index' option
-  git.lib.send(:command, 'checkout-index', %W[--index --force -- #{@real_path}])
   redirect url_for_file(splat)
+end
+
+get '/*;add' do
+  git.add(@real_path)
+  redirect url_for_file(splat)
+end
+
+get '/;save' do
+  @diff_stats = git.lib.diff_index_stats
+  @diff_total = @diff_stats[:total]
+
+  unless @diff_total[:files].zero?
+    @msg = params[:msg]
+
+    chdir(@real_path)
+    erb :save
+  else
+    flash :error => 'Sorry, nothing to save yet...'
+    redirect url_for('/' + u(';status'))
+  end
+end
+
+post '/;save' do
+  @msg = params[:msg]
+
+  if @msg.is_a?(String) && @msg.length > 12
+    git.commit(@msg.gsub(/'/, '´'))
+
+    # TODO: git push (=> build _site, ...)
+    sleep 3  # ???
+
+    flash :notice => 'Site successfully updated.'
+    redirect url_for('/')
+  else
+    flash :error => "Required parameter `commit message' is missing or too short!"
+    redirect url_for('/' + u(';save'))
+  end
+end
+
+get '/;publish' do
+  @tags = git.tags.reverse
+
+  unless @tags.empty?
+    @logs = git.log(99).between(@tags.first)
+    erb :publish
+  else
+    redirect url_for('/' + u(';save'))
+  end
+end
+
+post '/;publish' do
+  tag = params[:tag]
+
+  if tag == '_new'
+    tag = "jc-#{Time.now.to_f}"
+    git.add_tag(tag)
+  end
+
+  # TODO: git push (=> build _site, ...)
+  sleep 3  # ???
+
+  redirect options.site || url_for('/')
 end
 
 get '/*;*' do
@@ -50,8 +109,6 @@ get '/*' do
 end
 
 post '/*' do
-  # TODO: git add
-
   if File.directory?(@real_path)
     send("create_#{params[:type]}")
   else
@@ -61,13 +118,15 @@ post '/*' do
 end
 
 put '/*' do
-  # TODO: git add
-
   if @page = Page.load(@real_path)
     attributes = params.reject { |key, _| key == '_method' || key == 'splat' }
 
     if @page.update(attributes, Page.lang(@path))
-      flash :notice => 'Successfully updated.' if @page.write!
+      if @page.write!(git)
+        flash :notice => 'Page successfully updated.'
+      else
+        flash :error => "Unable to write file `#{@real_path}'."
+      end
     else
       flash :error => @page.errors
     end
@@ -80,8 +139,6 @@ put '/*' do
 end
 
 delete '/*' do
-  # TODO: git rm
-
   if File.directory?(@real_path)
     delete_folder
   elsif File.file?(@real_path)
@@ -93,8 +150,6 @@ def render_folder
   return unless File.directory?(@real_path)
 
   chdir(@real_path)
-  get_files
-
   erb :index
 end
 
@@ -102,7 +157,6 @@ def render_page
   return unless File.file?(@real_path)
 
   chdir(File.dirname(@real_path))
-  get_files
 
   if @page = Page.load(@real_path)
     erb :edit
@@ -142,7 +196,7 @@ def create_page
     [:layout,    params[:layout] || 'default']
   ])
 
-  if @page.write
+  if @page.write(git)
     flash :notice => 'Page successfully created.'
     redirect relative_url(@page.filename)
   else
@@ -154,13 +208,15 @@ def create_page
 end
 
 def delete_folder
-  FileUtils.rm_r(@real_path)
+  git.remove(@real_path, :recursive => true) rescue nil
+  FileUtils.rm_r(@real_path) if File.exist?(@real_path)
+
   redirect relative_url('..')
 end
 
 def delete_page
   if page = Page.load(@real_path)
-    if page.destroy
+    if page.destroy(git)
       redirect relative_url
       return
     else

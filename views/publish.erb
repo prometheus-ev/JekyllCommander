@@ -1,0 +1,30 @@
+<h2>Publish site</h2>
+
+<%= form_this %>
+  <label for="commit_tag">Version:</label>
+  <select name="tag" id="commit_tag">
+  <% unless @logs.size.zero? %>
+    <option value="_new">New...</option>
+  <% end %>
+  <% for tag in @tags %>
+    <% log = tag.log(1).first or next %>
+    <option value="<%= tag.name %>"><%= log.date.strftime('%Y-%m-%d %H:%M:%S %Z') %> (<%= log.author.name %>)</option>
+  <% end %>
+  </select>
+  <input type="submit" value="Publish site" />
+</form>
+
+<% unless @logs.size.zero? %>
+<hr />
+
+<table class="commit_log">
+<% for log in @logs %>
+  <tr>
+    <td class="date"><%= log.date.strftime('%Y-%m-%d %H:%M:%S %Z') %></td>
+    <td class="author"><%= log.author.name %></td>
+    <td>-</td>
+    <td><%= log.message %></td>
+  </tr>
+<% end %>
+</table>
+<% end %>

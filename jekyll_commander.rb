@@ -7,10 +7,11 @@ require 'yaml'
 DEFAULT_OPTIONS = {
   :sessions => true,
   :repo     => nil,
+  :site     => nil,
+  :preview  => nil,
   :email    => '%s@localhost',
   :tmpdir   => File.expand_path('../tmp', __FILE__),
-  :ignore   => %w[. .. .git .gitignore _site _plugins favicon.ico],
-  :preview  => nil
+  :ignore   => %w[. .. .git .gitignore _site _plugins favicon.ico]
 }
 
 configure do
@@ -22,10 +23,9 @@ configure do
   DEFAULT_OPTIONS.merge(opt).each { |key, value| set key, value }
 end
 
-require 'lib/page'
-require 'lib/helpers'
-require 'lib/partials'
-require 'lib/routes'
+%w[extensions page helpers routes].each { |lib|
+  require "lib/#{lib}"
+}
 
 unless $0 == __FILE__  # for rackup
   Jekyll_commander = Rack::Builder.new { run Sinatra::Application }.to_app
