@@ -28,23 +28,43 @@ get '/*;status' do
   erb :status
 end
 
+get '/*;diff' do
+  @diff = git.diff.path(@real_path).patch.split("\n").map { |row|
+    [case row
+       when /\A(?:diff|index)\s/  then :preamble
+       when /\A(?:new|deleted)\s/ then :preamble
+       when /\A(?:---|\+\+\+)\s/  then :preamble
+       when /\A@@\s/              then :hunk
+       when /\A-/                 then :deletion
+       when /\A\+/                then :insertion
+       else                            :context
+     end, h(row).sub(/\A\s+/) { |m| '&nbsp;' * m.length }.
+                 sub(/\s+\z/) { |m| %Q{<span class="trailing_space">#{'&nbsp;' * m.length}</span>} }]
+  }
+
+  erb :diff
+end
+
 get '/*;revert' do
-  git.lib.reset_file(nil, :path_limiter => @real_path, :quiet => true)
+  git.reset_file(:path_limiter => @real_path, :quiet => true)
   git.checkout_index(:path_limiter => @real_path, :index => true, :force => true)
 
+  flash :notice => 'Change successfully reverted.'
   redirect url_for_file(splat)
 end
 
 get '/*;add' do
   git.add(@real_path)
+
+  flash :notice => 'File successfully added.'
   redirect url_for_file(splat)
 end
 
 get '/;save' do
-  @diff_stats = git.lib.diff_index_stats
+  @diff_stats = git.diff_index_stats
   @diff_total = @diff_stats[:total]
 
-  unless @diff_total[:files].zero?
+  if dirty?
     @msg = params[:msg]
 
     chdir(@real_path)
@@ -74,9 +94,11 @@ end
 
 get '/;publish' do
   @tags = git.tags.reverse
+  @logs = git.log(99)
+  @logs.between(@tags.first) unless @tags.empty?
 
-  unless @tags.empty?
-    @logs = git.log(99).between(@tags.first)
+  unless @logs.empty? && @tags.empty?
+    flash :notice => 'NOTE: You have unsaved changes...' if dirty?
     erb :publish
   else
     redirect url_for('/' + u(';save'))
@@ -94,7 +116,12 @@ post '/;publish' do
   # TODO: git push (=> build _site, ...)
   sleep 3  # ???
 
-  redirect options.site || url_for('/')
+  if options.site
+    redirect options.site
+  else
+    flash :notice => 'Site successfully published.'
+    redirect url_for('/')
+  end
 end
 
 get '/*;*' do
@@ -175,6 +202,8 @@ def create_folder
 
     unless File.exist?(real_path)
       Dir.mkdir(real_path)
+
+      flash :notice => 'Folder successfully created.'
       redirect url_for(path)
 
       return
@@ -211,13 +240,16 @@ def delete_folder
   git.remove(@real_path, :recursive => true) rescue nil
   FileUtils.rm_r(@real_path) if File.exist?(@real_path)
 
+  flash :notice => 'Folder successfully deleted.'
   redirect relative_url('..')
 end
 
 def delete_page
   if page = Page.load(@real_path)
     if page.destroy(git)
+      flash :notice => 'Page successfully deleted.'
       redirect relative_url
+
       return
     else
       flash :error => page.errors

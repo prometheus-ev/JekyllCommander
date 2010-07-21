@@ -2,6 +2,18 @@ require 'git'
 
 module Git
 
+  class Base
+
+    def diff_index_stats(treeish = 'HEAD', opts = {})
+      lib.diff_index_stats(treeish, opts)
+    end
+
+    def reset_file(opts = {})
+      lib.reset_file(opts.delete(:commit), opts)
+    end
+
+  end
+
   class Lib
 
     def diff_index_stats(treeish = 'HEAD', opts = {})
@@ -41,6 +53,25 @@ module Git
       arr_opts << '--' << opts[:path_limiter] if opts[:path_limiter].is_a? String
 
       command('checkout-index', arr_opts)
+    end
+
+  end
+
+  class Diff
+
+    alias_method :_jc_original_initialize, :initialize
+
+    def initialize(base, from = 'HEAD', to = nil)
+      _jc_original_initialize(base, from, to)
+      @to = to unless to
+    end
+
+  end
+
+  class Log
+
+    def empty?
+      size.zero?
     end
 
   end

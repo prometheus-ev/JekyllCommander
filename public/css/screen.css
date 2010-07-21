@@ -9,9 +9,12 @@ body, p, ol, ul, td {
   line-height:      18px;
 }
 
-pre {
+pre, .diff {
   background-color: #eee;
   padding:          10px;
+}
+
+pre {
   font-size:        11px;
 }
 
@@ -114,4 +117,34 @@ li.current a {
 
 .commit_log td.author {
   color:            blue;
+}
+
+.diff td {
+  font-family:      monospace;
+  font-size:        90%;
+  padding:          0;
+}
+
+.diff td.preamble {
+  color:            olive;
+}
+
+.diff td.hunk {
+  color:            purple;
+}
+
+.diff td.deletion {
+  color:            red;
+}
+
+.diff td.insertion {
+  color:            green;
+}
+
+.diff td.context {
+  color:            gray;
+}
+
+.diff .trailing_space {
+  background-color: red;
 }

@@ -3,7 +3,7 @@
 <%= form_this %>
   <label for="commit_tag">Version:</label>
   <select name="tag" id="commit_tag">
-  <% unless @logs.size.zero? %>
+  <% unless @logs.empty? %>
     <option value="_new">New...</option>
   <% end %>
   <% for tag in @tags %>
@@ -14,7 +14,7 @@
   <input type="submit" value="Publish site" />
 </form>
 
-<% unless @logs.size.zero? %>
+<% unless @logs.empty? %>
 <hr />
 
 <table class="commit_log">

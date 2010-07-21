@@ -18,5 +18,4 @@
     * pull first! (handle conflicts)
   * tag ("publish")
     * pull first! (handle conflicts)
-  * diff (versions/tags) (?)
 * `grep TODO .`

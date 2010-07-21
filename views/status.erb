@@ -1,4 +1,4 @@
-<h2>Status</h2>
+<h2>Status of <code><%= @path %></code></h2>
 
 <% for type, files in @status.sort %>
   <h3><%= files.size %> <%= type %></h3>
@@ -10,7 +10,8 @@
     <% if type == 'untracked' %>
       [<%= link_to 'Add', relative_path("#{file};add") %>]
     <% else %>
-      [<%= link_to 'Undo', relative_path("#{file};revert") %>]
+      [<%= link_to 'Diff', relative_path("#{file};diff") %> |
+       <%= link_to 'Undo', relative_path("#{file};revert") %>]
     <% end %>
     </li>
   <% end %>

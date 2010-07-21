@@ -32,9 +32,10 @@ helpers do
     form + %Q{\n<input type="hidden" name="type" value="#{type}" />}
   end
 
-  def form_delete(type, url = relative_path)
+  def form_delete(text, url = relative_path)
+    text = "Delete #{text}" if text.is_a?(Symbol)
     onclick = %q{onclick='if(!confirm("Are your sure?"))return false;'}
-    form(:delete, url) + %Q{\n<p><button type="submit" #{onclick}>Delete #{type}</button></p>\n</form>}
+    form(:delete, url) + %Q{\n<p><button type="submit" #{onclick}>#{text}</button></p>\n</form>}
   end
 
   def url_for(path)
@@ -220,6 +221,16 @@ helpers do
     git = Git.clone(options.repo, name, :path => base, :bare => false)
     git.config('user.name',  user)
     git.config('user.email', options.email % user)
+  end
+
+  def dirty?(path = nil)
+    diff_total = if path
+      git.diff_index_stats('HEAD', :path_limiter => path)[:total]
+    else
+      @diff_total || git.diff_index_stats[:total]
+    end
+
+    !diff_total[:files].zero?
   end
 
 end
