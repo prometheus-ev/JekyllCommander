@@ -25,7 +25,7 @@ helpers do
   end
 
   def form_this(method = :post)
-    form(method, request.path)
+    form(method, request.path_info)
   end
 
   def form_new(type)
