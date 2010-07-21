@@ -214,7 +214,14 @@ helpers do
   end
 
   def ensure_repo
-    return if File.directory?(File.join(repo_root, '.git'))
+    if File.directory?(File.join(repo_root, '.git'))
+      unless session[:pulled] == repo_root
+        git.pull  # TODO: handle conflicts!
+        session[:pulled] = repo_root
+      end
+
+      return
+    end
 
     base, name = File.split(repo_root)
 

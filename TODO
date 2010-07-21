@@ -3,10 +3,7 @@
     * content negotiation
     * prefer-language
     * ForceLanguagePriority (?)
-  * build _site
-    * from specified tag (allows "rollback")
-* preview
-  * cf. "deploy" (from working copy)
+  * build _site from specified tag ("rollback")
 * WYSIWYG editor (?)
 * make files editable
   * _config.yml
@@ -14,8 +11,5 @@
   * css/*.css
   * javascripts/*.js
 * git integration
-  * commit/push ("save")
-    * pull first! (handle conflicts)
-  * tag ("publish")
-    * pull first! (handle conflicts)
+  * handle conflicts!
 * `grep TODO .`

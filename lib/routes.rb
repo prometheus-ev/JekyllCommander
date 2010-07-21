@@ -79,10 +79,9 @@ post '/;save' do
   @msg = params[:msg]
 
   if @msg.is_a?(String) && @msg.length > 12
+    git.pull  # TODO: handle conflicts!
     git.commit(@msg.gsub(/'/, '´'))
-
-    # TODO: git push (=> build _site, ...)
-    sleep 3  # ???
+    git.push  # TODO: handle non-fast-forward?
 
     flash :notice => 'Site successfully updated.'
     redirect url_for('/')
@@ -93,6 +92,8 @@ post '/;save' do
 end
 
 get '/;publish' do
+  git.fetch
+
   @tags = git.tags.reverse
   @logs = git.log(99)
   @logs.between(@tags.first) unless @tags.empty?
@@ -111,10 +112,15 @@ post '/;publish' do
   if tag == '_new'
     tag = "jc-#{Time.now.to_f}"
     git.add_tag(tag)
+  else
+    # TODO: "rollback"
+    flash :error => 'Rollback not supported yet, sorry!'
+    redirect url_for('/')
+
+    return
   end
 
-  # TODO: git push (=> build _site, ...)
-  sleep 3  # ???
+  git.push('origin', tag)
 
   if options.site
     redirect options.site
