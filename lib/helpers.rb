@@ -87,8 +87,8 @@ helpers do
     }.join(" |\n")
   end
 
-  def link_to_preview(page)
-    link_to('Preview', File.join(options.preview, relative_path(page.slug)), 'target="_blank"')
+  def link_to_preview
+    link_to('Preview', relative_path("#{@file};preview"), :target => '_blank')
   end
 
   def flash(hash)
@@ -189,8 +189,10 @@ helpers do
     trail.unshift(link_to('ROOT', '/')).join(' / ')
   end
 
-  def splat
-    @splat ||= params[:splat].first
+  def real_params
+    @real_params ||= params.reject { |key, _|
+      key == '_method' || key == 'splat'
+    }
   end
 
   def user

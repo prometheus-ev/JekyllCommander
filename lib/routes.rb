@@ -19,7 +19,7 @@ end
 get '/*;status' do
   @status, status = {}, git.status
 
-  re = %r{\A#{Regexp.escape(splat)}(.*)}
+  re = %r{\A#{Regexp.escape(@path)}(.*)}
 
   %w[added changed deleted untracked].each { |type|
     @status[type] = status.send(type).map { |path, _| path[re, 1] }.compact
@@ -50,14 +50,34 @@ get '/*;revert' do
   git.checkout_index(:path_limiter => @real_path, :index => true, :force => true)
 
   flash :notice => 'Change successfully reverted.'
-  redirect url_for_file(splat)
+  redirect url_for_file(@path)
 end
 
 get '/*;add' do
   git.add(@real_path)
 
   flash :notice => 'File successfully added.'
-  redirect url_for_file(splat)
+  redirect url_for_file(@path)
+end
+
+get '/*;preview' do
+  if options.preview
+    if page = Page.load(@real_path)
+      Dir.chdir(repo_root) { system('rake') }  # TODO: error handling!
+
+      path = relative_path(page.slug)
+      path = [page.lang, path] if page.multilang?
+      redirect File.join(options.preview, path)
+
+      return
+    else
+      flash :error => "Unable to load page `#{@real_path}'."
+    end
+  else
+    flash :error => "Option `preview' not set..."
+  end
+
+  redirect url_for_file(@path)
 end
 
 get '/;save' do
@@ -80,7 +100,7 @@ post '/;save' do
 
   if @msg.is_a?(String) && @msg.length > 12
     git.pull  # TODO: handle conflicts!
-    git.commit(@msg.gsub(/'/, '´'))
+    git.commit(@msg)
     git.push  # TODO: handle non-fast-forward?
 
     flash :notice => 'Site successfully updated.'
@@ -152,13 +172,11 @@ end
 
 put '/*' do
   if @page = Page.load(@real_path)
-    attributes = params.reject { |key, _| key == '_method' || key == 'splat' }
-
-    if @page.update(attributes, Page.lang(@path))
+    if @page.update(real_params, Page.lang(@path))
       if @page.write!(git)
         flash :notice => 'Page successfully updated.'
       else
-        flash :error => "Unable to write file `#{@real_path}'."
+        flash :error => "Unable to write page `#{@real_path}'."
       end
     else
       flash :error => @page.errors
@@ -166,7 +184,7 @@ put '/*' do
 
     erb :edit
   else
-    flash :error => "Unable to load file `#{@real_path}'."
+    flash :error => "Unable to load page `#{@real_path}'."
     erb :index
   end
 end
@@ -194,7 +212,7 @@ def render_page
   if @page = Page.load(@real_path)
     erb :edit
   else
-    flash :error => "Unable to load file `#{@real_path}'."
+    flash :error => "Unable to load page `#{@real_path}'."
     erb :index
   end
 end
@@ -261,7 +279,7 @@ def delete_page
       flash :error => page.errors
     end
   else
-    flash :error => "Unable to load file `#{@real_path}'."
+    flash :error => "Unable to load page `#{@real_path}'."
   end
 
   erb :index

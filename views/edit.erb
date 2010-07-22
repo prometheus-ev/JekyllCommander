@@ -3,11 +3,9 @@
 <p>
 <% if @page.multilang? %>
   <%= language_links(@page) %>
-  <% if options.preview %>|<% end %>
+  <%= '|' if options.preview %>
 <% end %>
-<% if options.preview %>
-  <%= link_to_preview(@page) %>
-<% end %>
+  <%= link_to_preview if options.preview %>
 </p>
 
 <%= form :put, relative_path(@file) %>

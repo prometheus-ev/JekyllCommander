@@ -1,8 +1,8 @@
 * deploy
-  * configure web server
-    * content negotiation
-    * prefer-language
-    * ForceLanguagePriority (?)
+  * content negotiation
+    | ForceLanguagePriority Prefer Fallback
+    | RewriteBase ... (?)
+    | RewriteRule ^([a-z][a-z])(/.*)$ $2 [E=prefer-language:$1]
   * build _site from specified tag ("rollback")
 * WYSIWYG editor (?)
 * make files editable
@@ -10,6 +10,11 @@
   * atom.xml
   * css/*.css
   * javascripts/*.js
+* preview URLs
+  * _posts
 * git integration
   * handle conflicts!
+* external commands (git, rake, ...)
+  * error handling!
+  * logging (?)
 * `grep TODO .`
