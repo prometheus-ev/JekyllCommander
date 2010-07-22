@@ -234,9 +234,9 @@ helpers do
 
   def dirty?(path = nil)
     diff_total = if path
-      git.diff_index_stats('HEAD', :path_limiter => path)[:total]
+      git.diff.path(path).index_stats[:total]
     else
-      @diff_total || git.diff_index_stats[:total]
+      @diff_total || git.diff.index_stats[:total]
     end
 
     !diff_total[:files].zero?

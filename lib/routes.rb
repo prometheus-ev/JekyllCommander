@@ -46,7 +46,7 @@ get '/*;diff' do
 end
 
 get '/*;revert' do
-  git.reset_file(:path_limiter => @real_path, :quiet => true)
+  git.reset(nil, :path_limiter => @real_path, :quiet => true)
   git.checkout_index(:path_limiter => @real_path, :index => true, :force => true)
 
   flash :notice => 'Change successfully reverted.'
@@ -81,7 +81,7 @@ get '/*;preview' do
 end
 
 get '/;save' do
-  @diff_stats = git.diff_index_stats
+  @diff_stats = git.diff.index_stats
   @diff_total = @diff_stats[:total]
 
   if dirty?

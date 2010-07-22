@@ -4,6 +4,8 @@ require 'rubygems'
 require 'sinatra'
 require 'yaml'
 
+gem 'blackwinter-git'
+
 DEFAULT_OPTIONS = {
   :sessions => true,
   :repo     => nil,
@@ -23,9 +25,7 @@ configure do
   DEFAULT_OPTIONS.merge(opt).each { |key, value| set key, value }
 end
 
-%w[extensions page helpers routes].each { |lib|
-  require "lib/#{lib}"
-}
+%w[page helpers routes].each { |lib| require "lib/#{lib}" }
 
 unless $0 == __FILE__  # for rackup
   Jekyll_commander = Rack::Builder.new { run Sinatra::Application }.to_app
