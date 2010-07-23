@@ -212,16 +212,12 @@ helpers do
   end
 
   def git
-    @git ||= Git.open(repo_root)
+    @git ||= Git.open(repo_root, :log => options.logger)
   end
 
   def ensure_repo
     if File.directory?(File.join(repo_root, '.git'))
-      unless session[:pulled] == repo_root
-        git.pull  # TODO: handle conflicts!
-        session[:pulled] = repo_root
-      end
-
+      pull unless session[:pulled] == repo_root
       return
     end
 
@@ -232,6 +228,23 @@ helpers do
     git.config('user.email', options.email % user)
   end
 
+  def pull
+    stash = git.lib.stash_save('about to pull')
+
+    git.pullpull
+    session[:pulled] = repo_root
+
+    begin
+      git.lib.stash_apply
+    rescue Git::GitExecuteError
+      # conflict!!
+    ensure
+      git.lib.stash_clear
+    end if stash
+
+    !check_conflict
+  end
+
   def dirty?(path = nil)
     diff_total = if path
       git.diff.path(path).index_stats[:total]
@@ -240,6 +253,29 @@ helpers do
     end
 
     !diff_total[:files].zero?
+  end
+
+  def conflicts(path = default = Object.new)
+    if default
+      @conflicts ||= conflicts(nil)
+    else
+      git.grep('<' * 7, path, :object => :nil, :name_only => true)
+    end
+  end
+
+  def conflict?(path = nil)
+    !conflicts(path).empty?
+  end
+
+  def check_conflict
+    if conflict?
+      flash :error => 'You have conflicts!!'
+      redirect url_for('/' + u(';status'))
+
+      true
+    else
+      false
+    end
   end
 
 end

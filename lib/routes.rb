@@ -17,9 +17,9 @@ get '/*;new_:type' do
 end
 
 get '/*;status' do
-  @status, status = {}, git.status
+  @status, status = { 'conflict' => conflicts }, git.status
 
-  re = %r{\A#{Regexp.escape(@path)}(.*)}
+  re = %r{\A#{Regexp.escape(@path.sub(/\A\//, ''))}(.*)}
 
   %w[added changed deleted untracked].each { |type|
     @status[type] = status.send(type).map { |path, _| path[re, 1] }.compact
@@ -42,7 +42,12 @@ get '/*;diff' do
                  sub(/\s+\z/) { |m| %Q{<span class="trailing_space">#{'&nbsp;' * m.length}</span>} }]
   }
 
-  erb :diff
+  unless @diff.empty?
+    erb :diff
+  else
+    flash :notice => 'File unchanged...'
+    redirect url_for_file(@path)
+  end
 end
 
 get '/*;revert' do
@@ -81,6 +86,8 @@ get '/*;preview' do
 end
 
 get '/;save' do
+  check_conflict and return
+
   @diff_stats = git.diff.index_stats
   @diff_total = @diff_stats[:total]
 
@@ -99,8 +106,9 @@ post '/;save' do
   @msg = params[:msg]
 
   if @msg.is_a?(String) && @msg.length > 12
-    git.pull  # TODO: handle conflicts!
-    git.commit(@msg)
+    pull or return
+
+    git.commit_all(@msg)
     git.push  # TODO: handle non-fast-forward?
 
     flash :notice => 'Site successfully updated.'
@@ -210,6 +218,7 @@ def render_page
   chdir(File.dirname(@real_path))
 
   if @page = Page.load(@real_path)
+    flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
     erb :edit
   else
     flash :error => "Unable to load page `#{@real_path}'."

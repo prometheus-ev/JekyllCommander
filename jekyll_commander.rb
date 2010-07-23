@@ -8,6 +8,7 @@ gem 'blackwinter-git'
 
 DEFAULT_OPTIONS = {
   :sessions => true,
+  :logger   => nil,
   :repo     => nil,
   :site     => nil,
   :preview  => nil,
@@ -16,13 +17,18 @@ DEFAULT_OPTIONS = {
   :ignore   => %w[. .. .git .gitignore _site _plugins favicon.ico]
 }
 
-configure do
-  cfg = File.expand_path('../config.yaml', __FILE__)
-  opt = File.readable?(cfg) ? YAML.load_file(cfg) : {}
+cfg = File.expand_path('../config.yaml', __FILE__)
+opt = File.readable?(cfg) ? YAML.load_file(cfg) : {}
 
-  abort 'No repo to serve!' unless opt[:repo]
+abort 'No repo to serve!' unless opt[:repo]
 
-  DEFAULT_OPTIONS.merge(opt).each { |key, value| set key, value }
+configure { set DEFAULT_OPTIONS.merge(opt) }
+
+configure :development do
+  if opt[:logger].nil?
+    require 'logger'
+    set :logger, Logger.new(STDOUT)
+  end
 end
 
 %w[page helpers routes].each { |lib| require "lib/#{lib}" }

@@ -47,10 +47,6 @@ a:hover {
   border-color:     red;
 }
 
-.git-status-changed {
-  color:            red;
-}
-
 #sidebar {
   float:            left;
   border-right:     2px dashed gray;
@@ -82,6 +78,31 @@ a:hover {
 
 li.current a {
   background-color: silver;
+}
+
+.added {
+  color:            green;
+}
+
+.changed {
+  color:            purple;
+}
+
+.conflict {
+  color:            red;
+}
+
+.deleted {
+  color:            maroon;
+}
+
+.untracked {
+  color:            teal;
+}
+
+.diff_stats td.file,
+.diff_stats td.num {
+  white-space:      nowrap;
 }
 
 .diff_stats td.num {

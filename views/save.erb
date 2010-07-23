@@ -19,8 +19,13 @@
 <% for file, stats in @diff_stats[:files].sort %>
   <% insertions, deletions = stats.values_at(:insertions, :deletions) %>
   <tr>
-    <td><%= link_to_file file %></td>
-    <td class="num"><%= insertions + deletions %></td>
+    <td class="file">
+      <%= link_to_file file %>
+    </td>
+    <td class="num">
+      <%= insertions + deletions %>
+      [<%= link_to 'Diff', relative_path("#{file};diff") %>]
+    </td>
     <td class="stat">
       <span class="insertions"><%= '+' * insertions %></span><span class="deletions"><%= '-' * deletions %></span>
     </td>

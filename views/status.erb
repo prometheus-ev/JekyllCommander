@@ -1,13 +1,17 @@
 <h2>Status of <code><%= @path %></code></h2>
 
 <% for type, files in @status.sort %>
-  <h3><%= files.size %> <%= type %></h3>
+  <h3 class="<%= type %>">
+    <%= files.size %>
+    <%= type %><%= 's' if type == 'conflict' && files.size != 1 %>
+  </h3>
 
   <ul>
   <% for file in files.sort %>
     <li>
       <%= link_to_file file %>
-    <% if type == 'untracked' %>
+    <% if type == 'conflict' %>
+    <% elsif type == 'untracked' %>
       [<%= link_to 'Add', relative_path("#{file};add") %>]
     <% else %>
       [<%= link_to 'Diff', relative_path("#{file};diff") %> |
