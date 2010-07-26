@@ -3,7 +3,7 @@ require 'active_support'
 require 'nuggets/util/i18n'
 require 'jekyll/convertible'
 
-class Page
+module JekyllCommander; class Page
 
   PageFile = Struct.new(:content, :data) {
     include Jekyll::Convertible
@@ -257,4 +257,4 @@ class Page
     end
   end
 
-end
+end; end

@@ -2,7 +2,7 @@ require 'erb'
 require 'git'
 require 'active_support'
 
-helpers do
+module JekyllCommander; module Helpers
 
   include ERB::Util
 
@@ -138,7 +138,23 @@ helpers do
     layouts.sort!
 
     layouts.each { |layout|
-      select << %Q{\n<option value="#{layout}"#{ ' selected="selected"' if layout == value }>#{layout.humanize}</option>}
+      select << %Q{\n<option value="#{layout}"#{' selected="selected"' if layout == value}>#{layout.humanize}</option>}
+    }
+
+    select << "\n</select>"
+  end
+
+  def markup_links
+    Page::MARKUP_LINKS[@page.markup.to_sym].map { |name, link|
+      %Q{<a href="#{link}" target="_blank">#{name}</a>}
+    }.join(' | ')
+  end
+
+  def options_for_markup_select(current = Page::DEFAULT_MARKUP)
+    select = %Q{<select name="markup" id="page_markup">}
+
+    Page::MARKUPS.each { |markup|
+      select << %Q{\n<option value="#{markup}"#{' selected="selected"' if markup == current}>#{markup.humanize}</option>}
     }
 
     select << "\n</select>"
@@ -278,4 +294,4 @@ helpers do
     end
   end
 
-end
+end; end

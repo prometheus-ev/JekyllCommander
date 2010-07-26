@@ -25,13 +25,14 @@ abort 'No repo to serve!' unless opt[:repo]
 configure { set DEFAULT_OPTIONS.merge(opt) }
 
 configure :development do
-  if opt[:logger].nil?
-    require 'logger'
-    set :logger, Logger.new(STDOUT)
-  end
-end
+  require 'logger'
+  set :logger, Logger.new(STDOUT)
+end if opt[:logger].nil?
 
 %w[page helpers routes].each { |lib| require "lib/#{lib}" }
+
+include JekyllCommander::Routes
+helpers JekyllCommander::Helpers
 
 unless $0 == __FILE__  # for rackup
   Jekyll_commander = Rack::Builder.new { run Sinatra::Application }.to_app

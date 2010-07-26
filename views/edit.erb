@@ -20,9 +20,7 @@
     <small>
     <% if @page.markup? %>
       <strong><%= @page.markup.humanize %>:</strong>
-      <%= Page::MARKUP_LINKS[@page.markup.to_sym].map { |name, link|
-        %Q{<a href="#{link}" target="_blank">#{name}</a>}
-      }.join(' | ') %>
+      <%= markup_links %>
     <% else %>
       <strong>No markup</strong>
     <% end %>

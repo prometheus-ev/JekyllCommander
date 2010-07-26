@@ -21,12 +21,7 @@
 
   <p>
     <label for="page_markup">Which markup language do you want?</label>
-    <select name="markup" id="page_markup">
-    <% default = Page::DEFAULT_MARKUP %>
-    <% for markup in Page::MARKUPS %>
-      <option value="<%= markup %>"<%= ' selected="selected"' if markup == default %>><%= markup.humanize %></option>
-    <% end %>
-    </select>
+    <%= options_for_markup_select %>
   </p>
 
   <p>

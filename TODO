@@ -1,15 +1,14 @@
-* deploy
-  * content negotiation
-    | ForceLanguagePriority Prefer Fallback
-    | RewriteBase ... (?)
-    | RewriteRule ^([a-z][a-z])(/.*)$ $2 [E=prefer-language:$1]
-  * build _site from specified tag ("rollback")
 * WYSIWYG editor (?)
-* make files editable
+* make files editable (Page vs. StaticFile)
   * _config.yml
   * atom.xml
   * css/*.css
   * javascripts/*.js
+* YAML front matter
+  * add/remove fields (?)
+  * default fields
+    * page: permalink, layout
+    * post: permalink, layout, title, published, tags, categories, (date)
 * preview URLs
   * _posts
 * git integration
@@ -17,4 +16,6 @@
 * external commands (git, rake, ...)
   * error handling!
   * logging (?)
+* thorough URL-/HTML-escaping
+* README, documentation
 * `grep TODO .`
