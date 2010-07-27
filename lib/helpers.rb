@@ -237,7 +237,7 @@ module JekyllCommander; module Helpers
 
   def ensure_repo
     if File.directory?(File.join(repo_root, '.git'))
-      pull unless session[:pulled] == repo_root
+      pull if pull?
       return
     end
 
@@ -248,11 +248,18 @@ module JekyllCommander; module Helpers
     git.config('user.email', options.email % user)
   end
 
+  def pull?
+    pulled, pulled_at = session[:pulled], session[:pulled_at]
+    pulled != repo_root || !pulled_at || pulled_at < 12.hours.ago.utc
+  end
+
   def pull
     stash = git.lib.stash_save('about to pull')
 
     git.pullpull
-    session[:pulled] = repo_root
+
+    session[:pulled]    = repo_root
+    session[:pulled_at] = Time.now.utc
 
     begin
       git.lib.stash_apply
