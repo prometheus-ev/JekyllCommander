@@ -14,6 +14,10 @@ module JekyllCommander; module Routes
     redirect url_for('/')
   end
 
+  get '/markitup/*' do
+    not_found
+  end
+
   get '/*;new_:type' do
     erb :"new_#{params[:type]}"
   end
