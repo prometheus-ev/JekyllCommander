@@ -305,4 +305,12 @@ module JekyllCommander; module Helpers
     end
   end
 
+  def preview_for(data)
+    @_preview_template ||= File.read(
+      File.join(settings.public, %w[markitup templates preview.html])
+    )
+
+    @_preview_template.sub(/<!-- content -->/, data)
+  end
+
 end; end

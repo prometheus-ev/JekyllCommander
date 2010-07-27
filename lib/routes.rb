@@ -1,3 +1,6 @@
+require 'maruku'
+require 'redcloth'
+
 module JekyllCommander; module Routes
 
   before do
@@ -12,6 +15,19 @@ module JekyllCommander; module Routes
 
   get '' do
     redirect url_for('/')
+  end
+
+  post '/markitup/preview_:type' do
+    data = params[:data]
+
+    preview_for(case params[:type]
+      when 'textile'
+        RedCloth.new(data).to_html
+      when 'markdown'
+        Maruku.new(data).to_html
+      else
+        data
+    end)
   end
 
   get '/markitup/*' do
