@@ -1,8 +1,8 @@
-document.observe('dom:loaded', function() {
+$(document).ready(function() {
   if (!window.location.hash) {
-    var i = $('main').select('input[type=text]')[0];
-    if (i && i.value.blank()) {
+    var i = $('#main input[type=text]').first();
+    if (i && i.val().trim().length === 0) {
       i.focus();
     }
   }
-}.bindAsEventListener(document));
+});
