@@ -112,9 +112,6 @@ module JekyllCommander; module Helpers
   end
 
   def header_fields(hash)
-    hash = {} unless hash.is_a?(Hash)
-    hash[:title] ||= ''
-
     hash.map { |key, value|
       renderer = "render_#{key}_header"
       renderer = :render_header_field unless respond_to?(renderer)
@@ -123,11 +120,18 @@ module JekyllCommander; module Helpers
         <label for="page_#{key}">#{key.to_s.humanize}</label>:<br />
         #{send(renderer, key, value)}
       </p>}
-    }.join
+    }.join if hash.is_a?(Hash)
   end
 
   def render_header_field(key, value)
-    %Q{<input type="text" name="header[#{key}]" id="page_#{key}" value="#{value}" size="50" />}
+    name, id = "header[#{key}]", "page_#{key}"
+
+    case value
+      when Array
+        %Q{<textarea name="#{name}" id="#{id}" rows="4" cols="44">#{value.join("\r\n")}</textarea>}
+      else
+        %Q{<input type="text" name="#{name}" id="#{id}" value="#{value}" size="50" />}
+    end
   end
 
   def render_layout_header(key = :layout, value = 'default')
@@ -137,7 +141,7 @@ module JekyllCommander; module Helpers
     layouts.map! { |layout| File.basename(layout, '.html') }
     layouts.sort!
 
-    layouts.each { |layout|
+    layouts.unshift('').each { |layout|
       select << %Q{\n<option value="#{layout}"#{' selected="selected"' if layout == value}>#{layout.humanize}</option>}
     }
 

@@ -31,7 +31,7 @@
         <%= link_to 'New folder', relative_path(';new_folder') %> |
         <%= link_to 'Status',     relative_path(';status') %>
 
-        <%= form_delete @path == '/' ? 'Discard copy!' : :folder %>
+        <%= form_delete @path == '/' ? 'Discard copy!' : :folder unless @file %>
       </p>
 
       <p id="site-actions">

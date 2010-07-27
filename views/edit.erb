@@ -9,13 +9,14 @@
 </p>
 
 <%= form :put, relative_path(@file) %>
-  <% if @page.render? %>
-    <%= header_fields(@page.header) %>
-  <% end %>
+<% if header = @page.header %>
+  <%= header_fields(header) %>
+<% end %>
 
+<% if body = @page.body %>
   <p>
     <label for="page_body">Body:</label><br />
-    <textarea name="body" id="page_body" rows="20" cols="60"><%= @page.body %></textarea>
+    <textarea name="body" id="page_body" rows="20" cols="60"><%=h body %></textarea>
     <br />
     <small>
     <% if @page.markup? %>
@@ -26,6 +27,7 @@
     <% end %>
     </small>
   </p>
+<% end %>
 
   <p>
     <label for="page_slug">Slug:</label><br />

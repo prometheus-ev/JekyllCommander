@@ -228,7 +228,7 @@ module JekyllCommander; module Routes
   def create_folder
     name = params[:name]
 
-    unless name.nil? || name.empty?
+    unless name.blank?
       path = File.join(@path, name)
       real_path = real_path(path)
 

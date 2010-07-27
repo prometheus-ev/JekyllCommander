@@ -23,7 +23,9 @@ module JekyllCommander; class Page
     LANGUAGES.map { |lang| "#{attr}_#{lang}" }
   }.flatten
 
-  MARKUPS   = %w[textile markdown html]
+  MARKUPS    = %w[textile markdown html]
+  NO_MARKUPS = %w[yml xml js css]
+
   NO_MARKUP = 'none'; MARKUPS << NO_MARKUP
   DEFAULT_MARKUP = MARKUPS.first
 
@@ -41,7 +43,7 @@ module JekyllCommander; class Page
     ]
   }
 
-  EXT_RE = %r{(?:\.([a-z]{2}))?(?:\.(\w+))?\z}
+  EXT_RE = %r{(?:\.(#{LANGUAGES.join('|')}))?(?:\.(\w+))?\z}
 
   def self.lang(path)
     path =~ EXT_RE
@@ -56,16 +58,17 @@ module JekyllCommander; class Page
     new(base, nil, [
       [:lang,      lang(name)],
       [:slug,      name.sub(EXT_RE, '')],
+      [:ext,       $2],
       [:markup,    $2],
       [:multilang, $1]
     ]).load
   end
 
-  attr_accessor :root, :title, :slug, :markup, :render,
+  attr_accessor :base, :title, :slug, :ext, :markup, :render,
                 :lang, :multilang, *TRANSLATED_ATTRS
 
-  def initialize(root, title = nil, options = {})
-    @root, @title, @errors = root, title, []
+  def initialize(base, title = nil, options = {})
+    @base, @title, @errors = base, title, []
 
     # this one is essential, so we set it first
     @lang = Array(options.to_a.assoc(:lang)).last || DEFAULT_LANGUAGE
@@ -77,15 +80,28 @@ module JekyllCommander; class Page
     translated { |lang|
       next unless exist?(lang)
 
-      body, header = PageFile.read_yaml(root, filename(lang))
+      if markup?
+        body, header = PageFile.read_yaml(base, filename(lang))
 
-      if header.empty?
-        self.render = false
+        if header.empty?
+          header = nil
+          self.render = false
+        else
+          self.render = true
+        end
       else
-        self.render = true
-        send("header_#{lang}=", header.symbolize_keys)
+        self.render = false
+
+        if ext == 'yml'
+          header = YAML.load_file(fullpath(lang))
+        elsif ext == 'xml'
+          body, header = PageFile.read_yaml(base, filename(lang))
+        else
+          body = File.read(fullpath(lang))
+        end
       end
 
+      send("header_#{lang}=", header.symbolize_keys) if header
       send("body_#{lang}=", body)
     }
 
@@ -94,15 +110,20 @@ module JekyllCommander; class Page
 
   alias_method :multilang?, :multilang
   alias_method :render?, :render
+  alias_method :ext?, :ext
+
+  def ext=(value)
+    @ext = NO_MARKUPS.include?(value) ? value : nil
+  end
 
   def markup?
     markup != NO_MARKUP
   end
 
   def markup=(value)
-    @markup = value.nil? || value.empty? ? NO_MARKUP      :
-              MARKUPS.include?(value)    ? value          :
-                                           DEFAULT_MARKUP
+    @markup = value.blank? || ext?    ? NO_MARKUP :
+              MARKUPS.include?(value) ? value     :
+                                        DEFAULT_MARKUP
   end
 
   def render=(value)
@@ -153,7 +174,22 @@ module JekyllCommander; class Page
 
   def update(attributes = {}, lang = lang)
     attributes.each { |key, value|
+      value.symbolize_keys! if value.is_a?(Hash)
+
       if TRANSLATES_ATTRS.include?(key.to_s)
+        original = send("#{key}_#{lang}")
+
+        case [original.class, value.class]
+          when [Hash, Hash]
+            value.each_key { |k|
+              if [original[k].class, value[k].class] == [Array, String]
+                value[k] = value[k].split("\r\n")
+              end
+            }
+          when [Array, String]
+            value = value.split("\r\n")
+        end
+
         send("#{key}_#{lang}=", value)
       elsif respond_to?(setter = "#{key}=")
         send(setter, value)
@@ -195,9 +231,11 @@ module JekyllCommander; class Page
     out = ''
 
     body, header = body(lang), header(lang)
+    separator = "---\n" if header && (body || render?)
 
-    out << header.stringify_keys.to_yaml + "---\n" if header
-    out << body.gsub(/\r\n/, "\n") if body
+    out << header.stringify_keys.to_yaml if header
+    out << separator                     if separator
+    out << body.gsub(/\r\n/, "\n")       if body
 
     out
   end
@@ -206,17 +244,24 @@ module JekyllCommander; class Page
     name  = "#{slug}"
     name << ".#{lang}"   if multilang?
     name << ".#{markup}" if markup?
+    name << ".#{ext}"    if ext?
     name
   end
 
   def fullpath(lang = lang)
-    File.join(root, filename(lang))
+    File.join(base, filename(lang))
   end
 
   def valid?
-    @errors << "Invalid slug `#{slug}'."     unless slug.is_a?(String) && !slug.empty?
-    @errors << "Invalid title `#{title}'."   unless title.is_a?(String) && !title.empty?
-    @errors << "Invalid format `#{markup}'." unless MARKUPS.include?(markup)
+    if title.blank?
+      @errors << "Required attribute `title' is missing!"
+    elsif slug.blank?
+      @errors << "Required attribute `slug' is missing!"
+    end
+
+    unless MARKUPS.include?(markup)
+      @errors << "Invalid format `#{markup}'."
+    end
 
     @errors.empty?
   end
@@ -226,7 +271,7 @@ module JekyllCommander; class Page
       File.exist?(fullpath(lang))
     else
       translated { |lang| return true if File.exist?(fullpath(lang)) }
-      File.exist?(File.join(root, slug))
+      File.exist?(File.join(base, slug)) unless slug.blank?
     end
   end
 
