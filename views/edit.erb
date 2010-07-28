@@ -1,11 +1,7 @@
 <h2>Edit page <code><%= @path %></code></h2>
 
 <p>
-<% if @page.multilang? %>
-  <%= language_links(@page) %>
-  <%= '|' if options.preview %>
-<% end %>
-  <%= link_to_preview if options.preview %>
+  <%= language_links(@page) if @page.multilang? %>
 </p>
 
 <%= form :put, relative_path(@file) %>
@@ -17,8 +13,8 @@
   <p>
     <label for="page_body">Body:</label><br />
     <textarea name="body" id="page_body" rows="20" cols="60"><%=h body %></textarea>
-    <br />
-    <small>
+
+    <small id="markup_links">
     <% if @page.markup? %>
       <link rel="stylesheet" href="<%= url_for "/markitup/sets/#{@page.markup}/style.css" %>" type="text/css" />
       <script src="<%= url_for "/markitup/sets/#{@page.markup}/set.js" %>" type="text/javascript"></script>

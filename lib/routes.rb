@@ -1,33 +1,30 @@
 require 'maruku'
 require 'redcloth'
+require 'nuggets/util/content_type'
 
 module JekyllCommander; module Routes
 
   before do
     ensure_repo
+    extract_path
     get_files
-
-    @path      = request.path_info.sub(/(?:;|%3B).*/, '')
-    @real_path = real_path(@path)
-
-    @file = File.basename(@path) if File.file?(@real_path)
   end
 
   get '' do
     redirect url_for('/')
   end
 
-  post '/markitup/preview_:type' do
-    data = params[:data]
+  get '/files/*' do
+    if @file
+      content_type ContentType.of(@real_path)
+      File.read(@real_path)
+    else
+      pass
+    end
+  end
 
-    preview_for(case params[:type]
-      when 'textile'
-        RedCloth.new(data).to_html
-      when 'markdown'
-        Maruku.new(data).to_html
-      else
-        data
-    end)
+  post '/markitup/preview_:type' do
+    preview_for(params[:data], params[:type])
   end
 
   get '/markitup/*' do
@@ -87,24 +84,15 @@ module JekyllCommander; module Routes
     redirect url_for_file(@path)
   end
 
-  get '/*;preview' do
-    if options.preview
-      if page = Page.load(@real_path)
-        Dir.chdir(repo_root) { system('rake') }  # TODO: error handling!
+  get %r{/.*;(?:staging|preview)} do
+    preview_folder || preview_page || file_not_found
+  end
 
-        path = relative_path(page.slug)
-        path = [page.lang, path] if page.multilang?
-        redirect File.join(options.preview, path)
+  post '/;update' do
+    pull or return
 
-        return
-      else
-        flash :error => "Unable to load page `#{@real_path}'."
-      end
-    else
-      flash :error => "Option `preview' not set..."
-    end
-
-    redirect url_for_file(@path)
+    flash :notice => 'Copy successfully updated.'
+    redirect url_for('/')
   end
 
   get '/;save' do
@@ -182,14 +170,11 @@ module JekyllCommander; module Routes
   end
 
   get '/*' do
-    render_folder || render_page || begin
-      flash :error => "File not found `#{@real_path}'."
-      redirect url_for('/')
-    end
+    render_folder || render_page || file_not_found
   end
 
   post '/*' do
-    if File.directory?(@real_path)
+    if @dir
       send("create_#{params[:type]}")
     else
       flash :error => "No such folder `#{@real_path}'."
@@ -217,22 +202,41 @@ module JekyllCommander; module Routes
   end
 
   delete '/*' do
-    if File.directory?(@real_path)
-      delete_folder
-    elsif File.file?(@real_path)
-      delete_page
+    @dir ? delete_folder : @file ? delete_page : not_found
+  end
+
+  def file_not_found
+    flash :error => "File not found `#{@real_path}'."
+    redirect url_for('/')
+  end
+
+  def preview_folder
+    preview(@path, @action) if @dir
+  end
+
+  def preview_page
+    return unless @file
+
+    if page = Page.load(@real_path)
+      path = relative_path(page.slug)
+      path = [page.lang, path] if page.multilang?
+
+      preview(path, @action)
+    else
+      flash :error => "Unable to load page `#{@real_path}'."
+      redirect relative_url
     end
   end
 
   def render_folder
-    return unless File.directory?(@real_path)
-
-    chdir(@real_path)
-    erb :index
+    if @dir
+      chdir(@dir)
+      erb :index
+    end
   end
 
   def render_page
-    return unless File.file?(@real_path)
+    return unless @file
 
     chdir(File.dirname(@real_path))
 

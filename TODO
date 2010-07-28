@@ -1,4 +1,10 @@
+* /*;log
 * file upload (???)
+* special pages
+  * blog posts
+  * publications
+  * image series
+  * ...
 * YAML front matter
   * add/remove fields (?)
   * default fields
@@ -15,4 +21,6 @@
   * logging (?)
 * thorough URL-/HTML-escaping
 * README, documentation
+* code cleanup
+  * especially Page -- it's very brittle!
 * `grep TODO .`

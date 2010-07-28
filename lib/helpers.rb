@@ -38,6 +38,15 @@ module JekyllCommander; module Helpers
     form(:delete, url) + %Q{\n<p><button type="submit" #{onclick}>#{text}</button></p>\n</form>}
   end
 
+  def html_tag(tag, content = nil, html_options = {})
+    attributes = html_options.map { |k, v| %Q{#{k}="#{h(v)}"} }.join(' ')
+    "<#{tag}#{" #{attributes}" unless attributes.empty?}>#{content}</#{tag}>"
+  end
+
+  def image_tag(path, html_options = {})
+    html_tag(:img, nil, html_options.merge(:src => url_for("/images/#{path}")))
+  end
+
   def url_for(path)
     path.start_with?('/') ? "#{request.script_name}#{path}".gsub(%r{/+}, '/') : path
   end
@@ -51,18 +60,7 @@ module JekyllCommander; module Helpers
   end
 
   def link_to(name, url, html_options = {})
-    attributes = [%Q{href="#{url_for(url)}"}]
-
-    case html_options
-      when String
-        attributes << html_options
-      when Array
-        attributes.concat(html_options)
-      when Hash
-        attributes.concat(html_options.map { |k, v| %Q{#{k}="#{v}"} })
-    end unless html_options.empty?
-
-    "<a #{attributes.join(' ')}>#{name}</a>"
+    html_tag(:a, name, html_options.merge(:href => url_for(url)))
   end
 
   def link_to_file(file, name = file)
@@ -87,8 +85,20 @@ module JekyllCommander; module Helpers
     }.join(" |\n")
   end
 
-  def link_to_preview
-    link_to('Preview', relative_path("#{@file};preview"), :target => '_blank')
+  def link_to_staging(name = 'Staging', html_options = {})
+    link_to_preview(name, html_options.merge(:__type__ => :staging))
+  end
+
+  def link_to_preview(name = 'Preview', html_options = {})
+    type = html_options.delete(:__type__) || :preview
+    return unless options.send(type)
+
+    img = image_tag("#{type}.png", :alt => type)
+
+    link_to(img, relative_path("#{@file};#{type}"), {
+      :title  => name,
+      :target => '_blank'
+    }.merge(html_options))
   end
 
   def flash(hash)
@@ -198,6 +208,16 @@ module JekyllCommander; module Helpers
     @files = Dir.entries(dir).sort - options.ignore
   end
 
+  def extract_path
+    @path = request.path_info
+    @path, @action = $1, $2 if @path =~ %r{(.*)(?:;|%3B)(.*)}
+
+    @real_path = real_path(@path)
+
+    @dir = @real_path if File.directory?(@real_path)
+    @file = File.basename(@path) if File.file?(@real_path)
+  end
+
   def trail
     trail, dirs = [], relative_pwd.split('/'); dirs.shift
 
@@ -269,7 +289,7 @@ module JekyllCommander; module Helpers
       git.lib.stash_clear
     end if stash
 
-    !check_conflict
+    !check_conflict(true)
   end
 
   def dirty?(path = nil)
@@ -294,9 +314,9 @@ module JekyllCommander; module Helpers
     !conflicts(path).empty?
   end
 
-  def check_conflict
+  def check_conflict(oops = false)
     if conflict?
-      flash :error => 'You have conflicts!!'
+      flash :error => "#{oops ? 'Oops, now' : 'Sorry,'} you have conflicts!!"
       redirect url_for('/' + u(';status'))
 
       true
@@ -305,12 +325,39 @@ module JekyllCommander; module Helpers
     end
   end
 
-  def preview_for(data)
+  def rake(*args)
+    # TODO: error handling!
+    Dir.chdir(repo_root) {
+      system('rake', *args)
+    }
+  end
+
+  def preview(path, type = nil)
+    target = options.send(type || :preview)
+
+    if target
+      if type.to_s == 'preview'
+        rake
+        target %= user
+      end
+
+      redirect File.join(target, path)
+    else
+      flash :error => "Option `#{type}' not set..."
+      redirect url_for_file(@path)
+    end
+  end
+
+  def preview_for(data, type = nil)
     @_preview_template ||= File.read(
       File.join(settings.public, %w[markitup templates preview.html])
     )
 
-    @_preview_template.sub(/<!-- content -->/, data)
+    @_preview_template.sub(/<!-- content -->/, case type.to_s
+      when 'textile'  then RedCloth.new(data).to_html
+      when 'markdown' then Maruku.new(data).to_html
+      else data
+    end)
   end
 
 end; end

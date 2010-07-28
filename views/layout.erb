@@ -5,8 +5,7 @@
 <head>
    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
    <title>
-     Jekyll Commander [<%= repo_name %>]
-     - <%= relative_pwd %><%= " (#{@file})" if @file %>
+     <%= repo_name %>:<%= @file ? relative_path(@file) : relative_pwd %> [Jekyll Commander]
    </title>
 
    <script src="<%= url_for '/js/jquery-1.4.2.min.js' %>" type="text/javascript"></script>
@@ -21,6 +20,9 @@
     <div id="sidebar">
       <p id="loginfo">[
         <%= options.site ? link_to(repo_name, options.site) : repo_name %>
+      <% if options.staging || options.preview %>
+        <%= [link_to_staging, link_to_preview].compact.join(' ') %>
+      <% end %>
         : <strong><%= user %></strong>
       ]</p>
 
@@ -28,13 +30,24 @@
 
       <p id="files"><%= partial :files %></p>
 
-      <p id="actions">
+      <div id="actions">
         <%= link_to 'New page',   relative_path(';new_page') %> |
         <%= link_to 'New folder', relative_path(';new_folder') %> |
         <%= link_to 'Status',     relative_path(';status') %>
 
-        <%= form_delete @path == '/' ? 'Discard copy!' : :folder unless @file %>
-      </p>
+      <% unless @file %>
+        <br style="margin-bottom: 0.9em" />
+      <% end %>
+
+      <% if @path == '/' %>
+        <%= form_delete 'Discard copy!' %> |
+        <%= form :post, '/' + u(';update') %>
+          <p><button type="submit">Update copy</button></p>
+        </form>
+      <% else %>
+        <%= form_delete :folder unless @file %>
+      <% end %>
+      </div>
 
       <p id="site-actions">
         <%= link_to 'Save changes', '/' + u(';save') %> |

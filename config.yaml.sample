@@ -1,4 +1,6 @@
 ---
-:repo:  git@prometheus-srv.uni-koeln.de:repos/prometheus_homepage.git
-:site:  http://prometheus-bildarchiv.de
-:email: %s@prometheus-bildarchiv.de
+:repo:    git@prometheus-srv.uni-koeln.de:repos/prometheus_homepage.git
+:site:    http://prometheus-bildarchiv.de
+:staging: /staging
+:preview: /preview-%s
+:email:   %s@prometheus-bildarchiv.de

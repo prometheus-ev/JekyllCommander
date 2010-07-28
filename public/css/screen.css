@@ -31,6 +31,11 @@ a:hover {
   background-color: #000;
 }
 
+a img {
+  border:           none;
+  vertical-align:   text-bottom;
+}
+
 .notice, .error {
   font-weight:      bold;
   color:            gray;
@@ -50,7 +55,7 @@ a:hover {
 #sidebar {
   float:            left;
   border-right:     2px dashed gray;
-  width:            220px;
+  width:            266px;
   overflow:         auto;
 }
 
@@ -66,14 +71,18 @@ a:hover {
   margin-top:       2px;
 }
 
+#actions form, #actions form p {
+  display:          inline;
+}
+
 #site-actions {
   border-top:       2px dashed gray;
   padding-top:      6px;
 }
 
 #main {
-  margin-left:      240px;
-  padding:          10px;
+  margin-left:      280px;
+  padding:          1px 0;
 }
 
 li.current a {
@@ -140,6 +149,10 @@ li.current a {
   color:            blue;
 }
 
+.diff {
+  width:            99%;
+}
+
 .diff td {
   font-family:      monospace;
   font-size:        90%;
@@ -168,4 +181,8 @@ li.current a {
 
 .diff .trailing_space {
   background-color: red;
+}
+
+#markup_links {
+  display:          block;
 }

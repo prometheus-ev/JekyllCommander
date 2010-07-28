@@ -7,14 +7,23 @@ require 'yaml'
 gem 'blackwinter-git'
 
 DEFAULT_OPTIONS = {
-  :sessions => true,
-  :logger   => nil,
-  :repo     => nil,
-  :site     => nil,
-  :preview  => nil,
-  :email    => '%s@localhost',
-  :tmpdir   => File.expand_path('../tmp', __FILE__),
-  :ignore   => %w[. .. .git .gitignore _site _plugins favicon.ico]
+  :sessions => true,            # enable/disable cookie based sessions
+  :logger   => nil,             # set Logger instance, or false
+  :repo     => nil,             # set Git repo URL (required)
+  :site     => nil,             # set site URL
+  :staging  => nil,             # set staging URL
+  :preview  => nil,             # set per-user preview URL
+  :email    => '%s@localhost',  # set user's e-mail address (used for Git)
+
+  # set temporary directory for Git repo clones
+  :tmpdir => File.expand_path('../tmp', __FILE__),
+
+  # set list of files to ignore
+  :ignore => %w[
+    . .. .git .gitignore
+    _site _site.tmp _site.old
+    _plugins favicon.ico
+  ]
 }
 
 cfg = File.expand_path('../config.yaml', __FILE__)
