@@ -165,6 +165,13 @@ module JekyllCommander; module Routes
     end
   end
 
+  get '/*;search' do
+    matches = search(params[:term]) || []
+
+    content_type 'application/json'
+    matches[0, 15].to_json
+  end
+
   post '/*;search' do
     @query, @type = params[:query], params[:type]
     @matches = search(@query, @type) || []

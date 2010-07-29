@@ -8,7 +8,8 @@
      <%= repo_name %>:<%= @file ? relative_path(@file) : relative_pwd %> [Jekyll Commander]
    </title>
 
-   <script src="<%= url_for '/js/jquery-1.4.2.min.js' %>" type="text/javascript"></script>
+   <script src="<%= url_for '/js/jquery.js' %>" type="text/javascript"></script>
+   <script src="<%= url_for '/js/jquery-ui.js' %>" type="text/javascript"></script>
    <script src="<%= url_for '/js/application.js' %>" type="text/javascript"></script>
    <script src="<%= url_for '/markitup/jquery.markitup.pack.js' %>" type="text/javascript"></script>
    <link rel="stylesheet" href="<%= url_for '/markitup/skins/simple/style.css' %>" type="text/css" media="screen, projection" />
