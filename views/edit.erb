@@ -30,11 +30,11 @@
 
   <p>
     <label for="page_slug">Slug:</label><br />
-    <input type="text" name="slug" id="page_slug" value="<%= @page.slug %>" size="50">
+    <input type="text" name="slug" id="page_slug" value="<%= @page.slug %>" size="50" />
   </p>
 
   <p>
-    <input type="submit" value="Save page"> |
+    <input type="submit" value="Save page" /> |
     <%= link_to 'Cancel', relative_path %>
   <% if dirty?(@real_path) %>
     &nbsp;

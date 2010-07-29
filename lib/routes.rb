@@ -64,7 +64,7 @@ module JekyllCommander; module Routes
     unless @diff.empty?
       erb :diff
     else
-      flash :notice => 'File unchanged...'
+      flash :notice => "File `#{@base}' unchanged..."
       redirect url_for_file(@path)
     end
   end
@@ -73,14 +73,14 @@ module JekyllCommander; module Routes
     git.reset(nil, :path_limiter => @real_path, :quiet => true)
     git.checkout_index(:path_limiter => @real_path, :index => true, :force => true)
 
-    flash :notice => 'Change successfully reverted.'
+    flash :notice => "Changes on `#{@base}' successfully reverted."
     redirect url_for_file(@path)
   end
 
   get '/*;add' do
     git.add(@real_path)
 
-    flash :notice => 'File successfully added.'
+    flash :notice => "File `#{@base}' successfully added."
     redirect url_for_file(@path)
   end
 
@@ -91,7 +91,7 @@ module JekyllCommander; module Routes
   post '/;update' do
     pull or return
 
-    flash :notice => 'Copy successfully updated.'
+    flash :notice => "Copy of `#{repo_name}' successfully updated."
     redirect url_for('/')
   end
 
@@ -165,6 +165,13 @@ module JekyllCommander; module Routes
     end
   end
 
+  post '/*;search' do
+    @query, @type = params[:query], params[:type]
+    @matches = search(@query, @type) || []
+
+    erb :search
+  end
+
   get '/*;*' do
     not_found
   end
@@ -177,7 +184,7 @@ module JekyllCommander; module Routes
     if @dir
       send("create_#{params[:type]}")
     else
-      flash :error => "No such folder `#{@real_path}'."
+      flash :error => "No such folder `#{@base}'."
       redirect url_for('/')
     end
   end
@@ -186,9 +193,9 @@ module JekyllCommander; module Routes
     if @page = Page.load(@real_path)
       if @page.update(real_params, Page.lang(@path))
         if @page.write!(git)
-          flash :notice => 'Page successfully updated.'
+          flash :notice => "Page `#{@base}' successfully updated."
         else
-          flash :error => "Unable to write page `#{@real_path}'."
+          flash :error => "Unable to write page `#{@base}'."
         end
       else
         flash :error => @page.errors
@@ -196,7 +203,7 @@ module JekyllCommander; module Routes
 
       erb :edit
     else
-      flash :error => "Unable to load page `#{@real_path}'."
+      flash :error => "Unable to load page `#{@base}'."
       erb :index
     end
   end
@@ -206,7 +213,7 @@ module JekyllCommander; module Routes
   end
 
   def file_not_found
-    flash :error => "File not found `#{@real_path}'."
+    flash :error => "File not found `#{@base}'."
     redirect url_for('/')
   end
 
@@ -223,14 +230,14 @@ module JekyllCommander; module Routes
 
       preview(path, @action)
     else
-      flash :error => "Unable to load page `#{@real_path}'."
+      flash :error => "Unable to load page `#{@base}'."
       redirect relative_url
     end
   end
 
   def render_folder
     if @dir
-      chdir(@dir)
+      chdir(@real_path)
       erb :index
     end
   end
@@ -244,7 +251,7 @@ module JekyllCommander; module Routes
       flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
       erb :edit
     else
-      flash :error => "Unable to load page `#{@real_path}'."
+      flash :error => "Unable to load page `#{@base}'."
       erb :index
     end
   end
@@ -254,17 +261,18 @@ module JekyllCommander; module Routes
 
     unless name.blank?
       path = File.join(@path, name)
+      base = File.basename(path)
       real_path = real_path(path)
 
       unless File.exist?(real_path)
         Dir.mkdir(real_path)
 
-        flash :notice => 'Folder successfully created.'
+        flash :notice => "Folder `#{base}' successfully created."
         redirect url_for(path)
 
         return
       else
-        flash :error => "Folder `#{real_path}' already exists."
+        flash :error => "Folder `#{base}' already exists."
       end
     else
       flash :error => "Required parameter `name' is missing!"
@@ -282,7 +290,7 @@ module JekyllCommander; module Routes
     ])
 
     if @page.write(git)
-      flash :notice => 'Page successfully created.'
+      flash :notice => "Page `#{@base}' successfully created."
       redirect relative_url(@page.filename)
     else
       flash :error => @page.errors
@@ -296,14 +304,14 @@ module JekyllCommander; module Routes
     git.remove(@real_path, :recursive => true) rescue nil
     FileUtils.rm_r(@real_path) if File.exist?(@real_path)
 
-    flash :notice => 'Folder successfully deleted.'
+    flash :notice => "Folder `#{@base}' successfully deleted."
     redirect relative_url('..')
   end
 
   def delete_page
     if page = Page.load(@real_path)
       if page.destroy(git)
-        flash :notice => 'Page successfully deleted.'
+        flash :notice => "Page `#{@base}' successfully deleted."
         redirect relative_url
 
         return
@@ -311,7 +319,7 @@ module JekyllCommander; module Routes
         flash :error => page.errors
       end
     else
-      flash :error => "Unable to load page `#{@real_path}'."
+      flash :error => "Unable to load page `#{@base}'."
     end
 
     erb :index

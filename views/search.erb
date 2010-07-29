@@ -1,0 +1,13 @@
+<h2>Search results for <code><%= @query %></code></h2>
+
+<% unless @matches.empty? %>
+  <div id="matches">
+    <ul>
+    <% for file in @matches.sort %>
+      <li><%= link_to_file(file) %></li>
+    <% end %>
+    </ul>
+  </div>
+<% else %>
+  <em>No matches.</em>
+<% end %>

@@ -18,17 +18,35 @@
   <div id="site">
 
     <div id="sidebar">
-      <p id="loginfo">[
+      <div id="loginfo">[
         <%= options.site ? link_to(repo_name, options.site) : repo_name %>
-      <% if options.staging || options.preview %>
-        <%= [link_to_staging, link_to_preview].compact.join(' ') %>
-      <% end %>
+        <%= link_to_staging %> <%= link_to_preview %>
         : <strong><%= user %></strong>
-      ]</p>
+      ]</div>
 
-      <p id="trail"><%= trail %></p>
+      <div id="trail">
+        <%= trail_links.join(' / ') %>
+      </div>
 
-      <p id="files"><%= partial :files %></p>
+      <div id="search">
+        <%= form :post, relative_path(';search') %>
+          <label for="search_query">Search:</label>
+          <input type="text" name="query" id="search_query" value="<%= @query %>" />
+          <select name="type" id="search_type">
+            <option value="name"<%= ' selected="selected"' if @type == 'name' %>>Name</option>
+            <option value="text"<%= ' selected="selected"' if @type == 'text' %>>Text</option>
+          </select>
+          <input type="submit" value="Go" />
+        </form>
+      </div>
+
+      <div id="files">
+        <ul>
+        <% for file in @files %>
+          <li<%= ' class="current"' if file == @file %>><%= link_to_file(file) %></li>
+        <% end %>
+        </ul>
+      </div>
 
       <div id="actions">
         <%= link_to 'New page',   relative_path(';new_page') %> |
@@ -42,17 +60,17 @@
       <% if @path == '/' %>
         <%= form_delete 'Discard copy!' %> |
         <%= form :post, '/' + u(';update') %>
-          <p><button type="submit">Update copy</button></p>
+          <p><input type="submit" value="Update copy" /></p>
         </form>
       <% else %>
         <%= form_delete :folder unless @file %>
       <% end %>
       </div>
 
-      <p id="site-actions">
+      <div id="site-actions">
         <%= link_to 'Save changes', '/' + u(';save') %> |
         <%= link_to 'Publish site', '/' + u(';publish') %>
-      </p>
+      </div>
     </div>
 
     <div id="main">

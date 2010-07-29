@@ -6,6 +6,14 @@ module JekyllCommander; module Helpers
 
   include ERB::Util
 
+  UPCASE_RE = %r{\b(?:html|xml|url)\b}i
+
+  class ::String
+    def humanize
+      super.gsub(UPCASE_RE) { |m| m.upcase }
+    end
+  end
+
   def u2(path)
     path.split('/').map { |dir| u(dir) }.join('/')
   end
@@ -35,7 +43,7 @@ module JekyllCommander; module Helpers
   def form_delete(text, url = relative_path)
     text = "Delete #{text}" if text.is_a?(Symbol)
     onclick = %q{onclick='if(!confirm("Are your sure?"))return false;'}
-    form(:delete, url) + %Q{\n<p><button type="submit" #{onclick}>#{text}</button></p>\n</form>}
+    form(:delete, url) + %Q{\n<p><input type="submit" value="#{text}" #{onclick} /></p>\n</form>}
   end
 
   def html_tag(tag, content = nil, html_options = {})
@@ -122,7 +130,7 @@ module JekyllCommander; module Helpers
   end
 
   def header_fields(hash)
-    hash.map { |key, value|
+    hash.sort_by { |key, _| key.to_s }.map { |key, value|
       renderer = "render_#{key}_header"
       renderer = :render_header_field unless respond_to?(renderer)
 
@@ -174,15 +182,19 @@ module JekyllCommander; module Helpers
     select << "\n</select>"
   end
 
+  def path_re(path, optional_slash = false)
+    %r{\A#{Regexp.escape(path.chomp('/'))}#{optional_slash ? '/?' : '(?:/|\z)'}}
+  end
+
   def pwd
     @pwd ||= begin
-      path, re = session[:pwd], %r{\A#{Regexp.escape(repo_root)}(?:/|\z)}
+      path, re = session[:pwd], path_re(repo_root)
       path =~ re && File.directory?(path) ? path : repo_root
     end
   end
 
   def relative_pwd
-    @relative_pwd ||= pwd.sub(%r{\A#{Regexp.escape(repo_root)}/?}, '/')
+    @relative_pwd ||= pwd.sub(path_re(repo_root, true), '/')
   end
 
   def relative_path(*args)
@@ -214,19 +226,21 @@ module JekyllCommander; module Helpers
 
     @real_path = real_path(@path)
 
-    @dir = @real_path if File.directory?(@real_path)
+    @dir  = File.basename(@path) if File.directory?(@real_path)
     @file = File.basename(@path) if File.file?(@real_path)
+
+    @base = @dir || @file
   end
 
-  def trail
-    trail, dirs = [], relative_pwd.split('/'); dirs.shift
+  def trail_links
+    links, dirs = [], relative_pwd.split('/'); dirs.shift
 
     until dirs.empty?
-      trail.unshift(link_to(dirs.last, path_for_file(dirs)))
+      links.unshift(link_to(dirs.last, path_for_file(dirs)))
       dirs.pop
     end
 
-    trail.unshift(link_to('ROOT', '/')).join(' / ')
+    links.unshift(link_to('ROOT', '/'))
   end
 
   def real_params
@@ -358,6 +372,28 @@ module JekyllCommander; module Helpers
       when 'markdown' then Maruku.new(data).to_html
       else data
     end)
+  end
+
+  def search(query, type = :name)
+    query_re = %r{#{query}}i
+
+    match = case type.to_s
+      when 'name'
+        lambda { |path| File.basename(path) =~ query_re }
+      when 'text'
+        lambda { |path| File.file?(path) && File.read(path) =~ query_re }
+      else
+        flash :error => "Invalid type parameter `#{type}'."
+    end or return
+
+    matches, re, ignore = [], path_re(pwd), options.ignore
+
+    Find.find(pwd) { |path|
+      Find.prune if ignore.include?(File.basename(path))
+      matches << path.sub(re, '') if match[path]
+    }
+
+    matches
   end
 
 end; end

@@ -3,16 +3,16 @@
 <%= form_new :page %>
   <p>
     <label for="page_title">Title (english, required):</label><br />
-    <input type="text" name="title" id="page_title" size="50">
+    <input type="text" name="title" id="page_title" size="50" />
   </p>
 
   <p>
-    <input type="checkbox" name="multilang" id="page_multilang" value="1" checked="checked">
+    <input type="checkbox" name="multilang" id="page_multilang" value="1" checked="checked" />
     <label for="page_multilang">Should this page be multilingual?</label>
   </p>
 
   <p>
-    <input type="checkbox" name="render" id="page_render" value="1" checked="checked">
+    <input type="checkbox" name="render" id="page_render" value="1" checked="checked" />
     <label for="page_render">Should this page be rendered by Jekyll?</label>
     <br />
     <label for="page_layout">If so, which layout do you want?</label>
@@ -25,7 +25,7 @@
   </p>
 
   <p>
-    <input type="submit" value="Create page">
+    <input type="submit" value="Create page" />
     | <%= link_to 'Cancel', relative_path %>
   </p>
 </form>
