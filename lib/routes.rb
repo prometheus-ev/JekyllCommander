@@ -169,7 +169,7 @@ module JekyllCommander; module Routes
     matches = search(params[:term]) || []
 
     content_type 'application/json'
-    matches[0, 15].to_json
+    matches[0, 15].sort.to_json
   end
 
   post '/*;search' do
