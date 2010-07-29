@@ -272,14 +272,15 @@ module JekyllCommander; module Helpers
   def ensure_repo
     if File.directory?(File.join(repo_root, '.git'))
       pull if pull?
-      return
+    else
+      base, name = File.split(repo_root)
+
+      git = Git.clone(options.repo, name, :path => base, :bare => false)
+      git.config('user.name',  user)
+      git.config('user.email', options.email % user)
+
+      rake
     end
-
-    base, name = File.split(repo_root)
-
-    git = Git.clone(options.repo, name, :path => base, :bare => false)
-    git.config('user.name',  user)
-    git.config('user.email', options.email % user)
   end
 
   def pull?
