@@ -93,6 +93,10 @@ module JekyllCommander; module Helpers
     }.join(" |\n")
   end
 
+  def link_to_site(name = 'Site', html_options = {})
+    link_to_preview(name, html_options.merge(:__type__ => :site))
+  end
+
   def link_to_staging(name = 'Staging', html_options = {})
     link_to_preview(name, html_options.merge(:__type__ => :staging))
   end
@@ -225,11 +229,10 @@ module JekyllCommander; module Helpers
     @path, @action = $1, $2 if @path =~ %r{(.*)(?:;|%3B)(.*)}
 
     @real_path = real_path(@path)
+    @base = File.basename(@path)
 
-    @dir  = File.basename(@path) if File.directory?(@real_path)
-    @file = File.basename(@path) if File.file?(@real_path)
-
-    @base = @dir || @file
+    @dir  = @base if File.directory?(@real_path)
+    @file = @base if File.file?(@real_path)
   end
 
   def trail_links
@@ -338,6 +341,67 @@ module JekyllCommander; module Helpers
     else
       false
     end
+  end
+
+  def status_for(path)
+    status, hash = git.status, { 'conflict' => conflicts }
+
+    re = %r{\A#{Regexp.escape(path.sub(/\A\//, ''))}(.*)}
+
+    %w[added changed deleted untracked].each { |type|
+      hash[type] = status.send(type).map { |q, _| q[re, 1] }.compact
+    }
+
+    hash
+  end
+
+  def annotated_diff(path)
+    git.diff.path(path).patch.split($/).map { |row|
+      [case row
+         when /\A(?:diff|index)\s/  then :preamble
+         when /\A(?:new|deleted)\s/ then :preamble
+         when /\A(?:---|\+\+\+)\s/  then :preamble
+         when /\A@@\s/              then :hunk
+         when /\A-/                 then :deletion
+         when /\A\+/                then :insertion
+         else                            :context
+       end, h(row).sub(/\A\s+/) { |m| '&nbsp;' * m.length }.
+                   sub(/\s+\z/) { |m| %Q{<span class="trailing_space">#{'&nbsp;' * m.length}</span>} }]
+    }
+  end
+
+  def revert(path)
+    git.reset(nil, :path_limiter => path, :quiet => true)
+    git.checkout_index(:path_limiter => path, :index => true, :force => true)
+  end
+
+  def commit(msg)
+    if pull
+      git.commit_all(msg)
+      git.push  # TODO: handle non-fast-forward?
+    end
+  end
+
+  def publish?
+    git.fetch
+
+    @tags = git.tags.reverse
+    @logs = git.log(99)
+    @logs.between(@tags.first) unless @tags.empty?
+
+    @logs.any? || @tags.any?
+  end
+
+  def publish(tag)
+    if tag == '_new'
+      tag = "jc-#{Time.now.to_f}"
+      git.add_tag(tag)
+    else
+      # delete tag so we can re-push it
+      git.push('origin', ":#{tag}")
+    end
+
+    git.push('origin', tag)
   end
 
   def rake(*args)

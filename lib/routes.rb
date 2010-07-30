@@ -36,32 +36,12 @@ module JekyllCommander; module Routes
   end
 
   get '/*;status' do
-    @status, status = { 'conflict' => conflicts }, git.status
-
-    re = %r{\A#{Regexp.escape(@path.sub(/\A\//, ''))}(.*)}
-
-    %w[added changed deleted untracked].each { |type|
-      @status[type] = status.send(type).map { |path, _| path[re, 1] }.compact
-    }
-
+    @status = status_for(@path)
     erb :status
   end
 
   get '/*;diff' do
-    @diff = git.diff.path(@real_path).patch.split("\n").map { |row|
-      [case row
-         when /\A(?:diff|index)\s/  then :preamble
-         when /\A(?:new|deleted)\s/ then :preamble
-         when /\A(?:---|\+\+\+)\s/  then :preamble
-         when /\A@@\s/              then :hunk
-         when /\A-/                 then :deletion
-         when /\A\+/                then :insertion
-         else                            :context
-       end, h(row).sub(/\A\s+/) { |m| '&nbsp;' * m.length }.
-                   sub(/\s+\z/) { |m| %Q{<span class="trailing_space">#{'&nbsp;' * m.length}</span>} }]
-    }
-
-    unless @diff.empty?
+    unless (@diff = annotated_diff(@real_path)).empty?
       erb :diff
     else
       flash :notice => "File `#{@base}' unchanged..."
@@ -70,8 +50,7 @@ module JekyllCommander; module Routes
   end
 
   get '/*;revert' do
-    git.reset(nil, :path_limiter => @real_path, :quiet => true)
-    git.checkout_index(:path_limiter => @real_path, :index => true, :force => true)
+    revert(@real_path)
 
     flash :notice => "Changes on `#{@base}' successfully reverted."
     redirect url_for_file(@path)
@@ -84,7 +63,7 @@ module JekyllCommander; module Routes
     redirect url_for_file(@path)
   end
 
-  get %r{/.*;(?:staging|preview)} do
+  get %r{/.*;(?:site|staging|preview)} do
     preview_folder || preview_page || file_not_found
   end
 
@@ -116,10 +95,7 @@ module JekyllCommander; module Routes
     @msg = params[:msg]
 
     if @msg.is_a?(String) && @msg.length > 12
-      pull or return
-
-      git.commit_all(@msg)
-      git.push  # TODO: handle non-fast-forward?
+      commit(@msg) or return
 
       flash :notice => 'Site successfully updated.'
       redirect url_for('/')
@@ -130,13 +106,7 @@ module JekyllCommander; module Routes
   end
 
   get '/;publish' do
-    git.fetch
-
-    @tags = git.tags.reverse
-    @logs = git.log(99)
-    @logs.between(@tags.first) unless @tags.empty?
-
-    unless @logs.empty? && @tags.empty?
+    if publish?
       flash :notice => 'NOTE: You have unsaved changes...' if dirty?
       erb :publish
     else
@@ -145,17 +115,7 @@ module JekyllCommander; module Routes
   end
 
   post '/;publish' do
-    tag = params[:tag]
-
-    if tag == '_new'
-      tag = "jc-#{Time.now.to_f}"
-      git.add_tag(tag)
-    else
-      # delete tag so we can re-push it
-      git.push('origin', ":#{tag}")
-    end
-
-    git.push('origin', tag)
+    publish(params[:tag])
 
     if options.site
       redirect options.site
