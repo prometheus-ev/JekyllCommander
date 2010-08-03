@@ -11,8 +11,9 @@
     <li>
       <%= link_to_file file %>
     <% if type == 'conflict' %>
+      [<%= link_to 'Diff', relative_path("#{file};diff") %>]
     <% elsif type == 'untracked' %>
-      [<%= link_to 'Add', relative_path("#{file};add") %>]
+      [<%= link_to 'Add',  relative_path("#{file};add") %>]
     <% else %>
       [<%= link_to 'Diff', relative_path("#{file};diff") %> |
        <%= link_to 'Undo', relative_path("#{file};revert") %>]

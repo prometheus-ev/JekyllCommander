@@ -344,7 +344,7 @@ module JekyllCommander; module Helpers
   end
 
   def status_for(path)
-    status, hash = git.status, { 'conflict' => conflicts }
+    status, hash = git.status, { 'conflict' => conflicts(path) }
 
     re = %r{\A#{Regexp.escape(path.sub(/\A\//, ''))}(.*)}
 
