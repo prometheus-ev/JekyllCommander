@@ -1,6 +1,9 @@
 ---
-:repo:    git@prometheus-srv.uni-koeln.de:repos/prometheus_homepage.git
-:site:    http://prometheus-bildarchiv.de
+:repo:    git@example.com:repos/repo.git
+:site:    http://example.com
 :staging: /staging
 :preview: /preview-%s
-:email:   %s@prometheus-bildarchiv.de
+:email:   %s@example.com
+
+:users:
+  jd: { :name: John Doe, :email: jdoe@example.net }

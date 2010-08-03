@@ -277,10 +277,14 @@ module JekyllCommander; module Helpers
       pull if pull?
     else
       base, name = File.split(repo_root)
-
       git = Git.clone(options.repo, name, :path => base, :bare => false)
-      git.config('user.name',  user)
-      git.config('user.email', options.email % user)
+
+      if options.users and config = options.users[user]
+        name, email = config.values_at(:name, :email)
+      end
+
+      git.config('user.name',  name  || user)
+      git.config('user.email', email || options.email % user)
 
       rake
     end
