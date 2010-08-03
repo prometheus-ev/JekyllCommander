@@ -344,9 +344,10 @@ module JekyllCommander; module Helpers
   end
 
   def status_for(path)
-    status, hash = git.status, { 'conflict' => conflicts(path) }
+    prefix = path.sub(/\A\//, '')
+    re = %r{\A#{Regexp.escape(prefix)}(.*)}
 
-    re = %r{\A#{Regexp.escape(path.sub(/\A\//, ''))}(.*)}
+    status, hash = git.status, { 'conflict' => conflicts(prefix) }
 
     %w[added changed deleted untracked].each { |type|
       hash[type] = status.send(type).map { |q, _| q[re, 1] }.compact
