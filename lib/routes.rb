@@ -159,10 +159,17 @@ module JekyllCommander; module Routes
   put '/*' do
     if @page = Page.load(@real_path)
       if @page.update(real_params, Page.lang(@path))
+        name = @page.filename
+
         if @page.write!(git)
-          flash :notice => "Page `#{@base}' successfully updated."
+          flash :notice => "Page `#{name}' successfully updated."
+
+          if name != @base
+            delete_page(name)  # delete old page, redirect to new one
+            return
+          end
         else
-          flash :error => "Unable to write page `#{@base}'."
+          flash :error => "Unable to write page `#{name}'."
         end
       else
         flash :error => @page.errors
@@ -275,12 +282,13 @@ module JekyllCommander; module Routes
     redirect relative_url('..')
   end
 
-  def delete_page
+  def delete_page(new_name = nil)
     if page = Page.load(@real_path)
       if page.destroy(git)
-        flash :notice => "Page `#{@base}' successfully deleted."
-        redirect relative_url
+        action = new_name ? 'renamed' : 'deleted'
+        flash :notice => "Page `#{@base}' successfully #{action}."
 
+        redirect relative_url(*Array(new_name))
         return
       else
         flash :error => page.errors

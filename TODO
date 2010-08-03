@@ -12,8 +12,11 @@
     * post: permalink, layout,
             title, published,
             tags, categories, (date)
+    * 'published' attribute for pages!
 * preview URLs
   * _posts
+* rename folders?
+* diff/revert folder/all
 * git integration
   * handle conflicts!
 * external commands (git, rake, ...)

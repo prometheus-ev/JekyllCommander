@@ -72,7 +72,7 @@ a img {
 #sidebar {
   float:            left;
   border-right:     2px dashed gray;
-  width:            266px;
+  width:            286px;
   overflow:         auto;
 }
 
@@ -116,7 +116,7 @@ a img {
 }
 
 #main {
-  margin-left:      280px;
+  margin-left:      300px;
   padding:          1px 0;
 }
 

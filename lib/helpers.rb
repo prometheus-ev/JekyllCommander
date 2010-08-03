@@ -86,7 +86,7 @@ module JekyllCommander; module Helpers
   def language_links(page, current_lang = page.lang)
     Page::LANGUAGES.map { |lang|
       if lang == current_lang
-        lang.upcase
+        "<strong>#{lang.upcase}</strong>"
       else
         link_to_file(page.filename(lang), lang.upcase)
       end
@@ -380,6 +380,8 @@ module JekyllCommander; module Helpers
     if pull
       git.commit_all(msg)
       git.push  # TODO: handle non-fast-forward?
+
+      true
     end
   end
 
