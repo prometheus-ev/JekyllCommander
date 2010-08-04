@@ -113,6 +113,11 @@ module JekyllCommander; module Helpers
     }.merge(html_options))
   end
 
+  def link_to_user(name = user, html_options = {})
+    link = user_config[:link]
+    link ? link_to(name, link, html_options) : name
+  end
+
   def flash(hash)
     session[:flash] = {} unless session[:flash].is_a?(Hash)
     flash = session[:flash]
@@ -230,6 +235,7 @@ module JekyllCommander; module Helpers
 
     @real_path = real_path(@path)
     @base = File.basename(@path)
+    @type = Page.type(@path)
 
     @dir  = @base if File.directory?(@real_path)
     @file = @base if File.file?(@real_path)
@@ -260,6 +266,18 @@ module JekyllCommander; module Helpers
     end
   end
 
+  def user_config
+    @user_config ||= options.users && options.users[user] || {}
+  end
+
+  def user_name
+    @user_name ||= user_config[:name] || user
+  end
+
+  def user_email
+    @user_email ||= user_config[:email] || options.email % user
+  end
+
   def repo_name
     @repo_name ||= File.basename(options.repo, '.git')
   end
@@ -279,12 +297,8 @@ module JekyllCommander; module Helpers
       base, name = File.split(repo_root)
       git = Git.clone(options.repo, name, :path => base, :bare => false)
 
-      if options.users and config = options.users[user]
-        name, email = config.values_at(:name, :email)
-      end
-
-      git.config('user.name',  name  || user)
-      git.config('user.email', email || options.email % user)
+      git.config('user.name',  user_name)
+      git.config('user.email', user_email)
 
       rake
     end
@@ -466,6 +480,14 @@ module JekyllCommander; module Helpers
     }
 
     matches
+  end
+
+  def page
+    return @page if defined?(@page)
+
+    @page = Page.load(repo_root, @path)
+    flash :error => "Unable to load page `#{@base}'." unless @page
+    @page
   end
 
 end; end

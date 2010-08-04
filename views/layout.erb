@@ -22,7 +22,7 @@
       <div id="loginfo">[
         <%= options.site ? link_to(repo_name, options.site) : repo_name %>
         <%= link_to_site %> <%= link_to_staging %> <%= link_to_preview %>
-        : <strong><%= user %></strong>
+        : <strong><%= link_to_user %></strong>
       ]</div>
 
       <div id="trail">
@@ -34,8 +34,8 @@
           <label for="search_query">Search:</label>
           <input type="text" name="query" id="search_query" value="<%= @query %>" />
           <select name="type" id="search_type">
-            <option value="name"<%= ' selected="selected"' if @type == 'name' %>>Name</option>
-            <option value="text"<%= ' selected="selected"' if @type == 'text' %>>Text</option>
+            <option value="name"<%= ' selected="selected"' if @query_type == 'name' %>>Name</option>
+            <option value="text"<%= ' selected="selected"' if @query_type == 'text' %>>Text</option>
           </select>
           <input type="submit" value="Go" />
         </form>
@@ -50,9 +50,9 @@
       </div>
 
       <div id="actions">
-        <%= link_to 'New page',   relative_path(';new_page') %> |
-        <%= link_to 'New folder', relative_path(';new_folder') %> |
-        <%= link_to 'Status',     relative_path(';status') %>
+        <%= link_to "New #{@type}", relative_path(";new_#{@type}") %> |
+        <%= link_to 'New folder',   relative_path(';new_folder') %> |
+        <%= link_to 'Status',       relative_path(';status') %>
 
       <% unless @file %>
         <br style="margin-bottom: 0.9em" />

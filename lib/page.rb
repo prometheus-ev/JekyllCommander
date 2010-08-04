@@ -15,6 +15,15 @@ module JekyllCommander; class Page
     end
   }
 
+  TYPE = Hash.new(:page).merge(
+    '_includes'   => :include,
+    '_layouts'    => :layout,
+    '_posts'      => :post,
+    'files'       => :file,
+    'javascripts' => :javascript,
+    'stylesheets' => :stylesheet
+  )
+
   LANGUAGES = %w[en de]
   DEFAULT_LANGUAGE = LANGUAGES.first
 
@@ -45,17 +54,23 @@ module JekyllCommander; class Page
 
   EXT_RE = %r{(?:\.(#{LANGUAGES.join('|')}))?(?:\.(\w+))?\z}
 
-  def self.lang(path)
+  class << self
+
+  def type(path)
+    TYPE[path.sub(%r{\A/}, '').sub(%r{/.*}, '')]
+  end
+
+  def lang(path)
     path =~ EXT_RE
     LANGUAGES.include?($1) ? $1 : DEFAULT_LANGUAGE
   end
 
-  def self.load(path)
-    return unless File.file?(path)
+  def load(root, path)
+    return unless File.file?(File.join(root, path))
 
     base, name = File.split(path)
 
-    new(base, nil, [
+    new(root, base, nil, [
       [:lang,      lang(name)],
       [:slug,      name.sub(EXT_RE, '')],
       [:ext,       $2],
@@ -64,11 +79,13 @@ module JekyllCommander; class Page
     ]).load
   end
 
-  attr_accessor :base, :title, :slug, :ext, :markup, :render,
-                :lang, :multilang, *TRANSLATED_ATTRS
+  end
 
-  def initialize(base, title = nil, options = {})
-    @base, @title, @errors = base, title, []
+  attr_accessor :root, :base, :title, :slug, :ext, :markup,
+                :render, :lang, :multilang, *TRANSLATED_ATTRS
+
+  def initialize(root, base, title = nil, options = {})
+    @root, @base, @title, @errors = root, base.sub(%r{\A/}, ''), title, []
 
     # this one is essential, so we set it first
     @lang = Array(options.to_a.assoc(:lang)).last || DEFAULT_LANGUAGE
@@ -81,7 +98,7 @@ module JekyllCommander; class Page
       next unless exist?(lang)
 
       if markup?
-        body, header = PageFile.read_yaml(base, filename(lang))
+        body, header = PageFile.read_yaml(basepath, filename(lang))
 
         if header.empty?
           header = nil
@@ -95,7 +112,7 @@ module JekyllCommander; class Page
         if ext == 'yml'
           header = YAML.load_file(fullpath(lang))
         elsif ext == 'xml'
-          body, header = PageFile.read_yaml(base, filename(lang))
+          body, header = PageFile.read_yaml(basepath, filename(lang))
         else
           body = File.read(fullpath(lang))
         end
@@ -248,8 +265,12 @@ module JekyllCommander; class Page
     name
   end
 
+  def basepath
+    @basepath ||= File.join(root, base)
+  end
+
   def fullpath(lang = lang)
-    File.join(base, filename(lang))
+    File.join(basepath, filename(lang))
   end
 
   def valid?
@@ -271,7 +292,7 @@ module JekyllCommander; class Page
       File.exist?(fullpath(lang))
     else
       translated { |lang| return true if File.exist?(fullpath(lang)) }
-      File.exist?(File.join(base, slug)) unless slug.blank?
+      File.exist?(File.join(basepath, slug)) unless slug.blank?
     end
   end
 
@@ -300,6 +321,10 @@ module JekyllCommander; class Page
     else
       languages.each { |lang| yield lang }
     end
+  end
+
+  def type
+    @type ||= self.class.type(base)
   end
 
 end; end

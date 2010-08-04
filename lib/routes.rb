@@ -32,7 +32,12 @@ module JekyllCommander; module Routes
   end
 
   get '/*;new_:type' do
-    erb :"new_#{params[:type]}"
+    begin
+      erb :"new_#{params[:type]}"
+    rescue Errno::ENOENT
+      flash :error => "Type `#{params[:type]}' not supported yet."
+      erb :index
+    end
   end
 
   get '/*;status' do
@@ -133,8 +138,8 @@ module JekyllCommander; module Routes
   end
 
   post '/*;search' do
-    @query, @type = params[:query], params[:type]
-    @matches = search(@query, @type) || []
+    @query, @query_type = params[:query], params[:type]
+    @matches = search(@query, @query_type) || []
 
     erb :search
   end
@@ -157,29 +162,26 @@ module JekyllCommander; module Routes
   end
 
   put '/*' do
-    if @page = Page.load(@real_path)
-      if @page.update(real_params, Page.lang(@path))
-        name = @page.filename
+    return erb(:index) unless page
 
-        if @page.write!(git)
-          flash :notice => "Page `#{name}' successfully updated."
+    if page.update(real_params, Page.lang(@path))
+      name = page.filename
 
-          if name != @base
-            delete_page(name)  # delete old page, redirect to new one
-            return
-          end
-        else
-          flash :error => "Unable to write page `#{name}'."
+      if page.write!(git)
+        flash :notice => "Page `#{name}' successfully updated."
+
+        if name != @base
+          delete_page(name)  # delete old page, redirect to new one
+          return
         end
       else
-        flash :error => @page.errors
+        flash :error => "Unable to write page `#{name}'."
       end
-
-      erb :edit
     else
-      flash :error => "Unable to load page `#{@base}'."
-      erb :index
+      flash :error => page.errors
     end
+
+    erb :edit
   end
 
   delete '/*' do
@@ -197,23 +199,19 @@ module JekyllCommander; module Routes
 
   def preview_page
     return unless @file
+    return redirect(relative_url) unless page
 
-    if page = Page.load(@real_path)
-      path = relative_path(page.slug)
-      path = [page.lang, path] if page.multilang?
+    path = relative_path(page.slug)
+    path = [page.lang, path] if page.multilang?
 
-      preview(path, @action)
-    else
-      flash :error => "Unable to load page `#{@base}'."
-      redirect relative_url
-    end
+    preview(path, @action)
   end
 
   def render_folder
-    if @dir
-      chdir(@real_path)
-      erb :index
-    end
+    return unless @dir
+
+    chdir(@real_path)
+    erb :index
   end
 
   def render_page
@@ -221,13 +219,10 @@ module JekyllCommander; module Routes
 
     chdir(File.dirname(@real_path))
 
-    if @page = Page.load(@real_path)
-      flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
-      erb :edit
-    else
-      flash :error => "Unable to load page `#{@base}'."
-      erb :index
-    end
+    return erb(:index) unless page
+
+    flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
+    erb :edit
   end
 
   def create_folder
@@ -256,18 +251,18 @@ module JekyllCommander; module Routes
   end
 
   def create_page
-    @page = Page.new(@real_path, params[:title], [
+    @page = Page.new(repo_root, @path, params[:title], [
       [:multilang, !params[:multilang].nil?],
       [:render,    !params[:render].nil?],
       [:markup,    params[:markup]],
       [:layout,    params[:layout] || 'default']
     ])
 
-    if @page.write(git)
+    if page.write(git)
       flash :notice => "Page `#{@base}' successfully created."
-      redirect relative_url(@page.filename)
+      redirect relative_url(page.filename)
     else
-      flash :error => @page.errors
+      flash :error => page.errors
       get_files
 
       erb :new_page
@@ -283,7 +278,7 @@ module JekyllCommander; module Routes
   end
 
   def delete_page(new_name = nil)
-    if page = Page.load(@real_path)
+    if page
       if page.destroy(git)
         action = new_name ? 'renamed' : 'deleted'
         flash :notice => "Page `#{@base}' successfully #{action}."
@@ -293,8 +288,6 @@ module JekyllCommander; module Routes
       else
         flash :error => page.errors
       end
-    else
-      flash :error => "Unable to load page `#{@base}'."
     end
 
     erb :index
