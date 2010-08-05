@@ -1,5 +1,6 @@
 require 'erb'
 require 'git'
+require 'open3'
 require 'active_support'
 
 module JekyllCommander
@@ -465,25 +466,24 @@ module JekyllCommander
     end
 
     def search(query, type = :name)
-      query_re = %r{#{query}}i
+      cmd, ignore, path_re = [], options.ignore, path_re(path = pwd)
 
-      match = case type.to_s
+      case type.to_s
         when 'name'
-          lambda { |path| File.basename(path) =~ query_re }
+          cmd.concat(%W[find #{path} -regextype posix-egrep])
+          ignore.each { |i| cmd.concat(%W[\( -path */#{i} -prune \) -o]) }
+          cmd.concat(%W[\( -iregex .*/[^/]*#{query}[^/]* -print0 \)])
         when 'text'
-          lambda { |path| File.file?(path) && File.read(path) =~ query_re }
+          cmd.concat(%W[grep -E -e #{query} -i -l -s -Z -I -r])
+          ignore.each { |i| cmd.concat(%W[--exclude-dir #{i} --exclude #{i}]) }
+          cmd << path
         else
           flash :error => "Invalid type parameter `#{type}'."
-      end or return
+          return
+      end
 
-      matches, re, ignore = [], path_re(pwd), options.ignore
-
-      Find.find(pwd) { |path|
-        Find.prune if ignore.include?(File.basename(path))
-        matches << path.sub(re, '') if match[path]
-      }
-
-      matches
+      stdin, stdout, stderr = Open3.popen3(*cmd)
+      stdout.read.split("\0").each { |path| path.sub!(path_re, '') }
     end
 
     def page

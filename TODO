@@ -26,7 +26,4 @@
 * README, documentation
 * code cleanup
   * especially Page -- it's very brittle!
-* rename it? the connection with Jekyll is
-  barely noticeable and the underlying build
-  system may be almost anything else, really.
 * `grep TODO .`

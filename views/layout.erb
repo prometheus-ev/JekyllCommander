@@ -38,6 +38,7 @@
             <option value="text"<%= ' selected="selected"' if @query_type == 'text' %>>Text</option>
           </select>
           <input type="submit" value="Go" />
+          <span id="spinner"><%= image_tag 'spinner.gif', :alt => 'spinner' %></span>
         </form>
       </div>
 

@@ -1,3 +1,7 @@
+function autocomplete_source(elem) {
+  return $('#search form').attr('action') + '?type=' + $('#search_type').val();
+}
+
 $(document).ready(function() {
   if (!window.location.hash) {
     var i = $('#main input[type=text]').first()
@@ -7,11 +11,16 @@ $(document).ready(function() {
     }
   }
 
+  $('#spinner')
+    .ajaxStart(function() {
+        $(this).show();
+    })
+    .ajaxStop(function() {
+        $(this).hide();
+    });
+
   $('#search_query').autocomplete({
-    source: $('#search form').attr('action'),
-    search: function(event, ui) {
-      return $('#search_type').val() === 'name';
-    },
+    source: autocomplete_source(),
     focus:  function(event, ui) {
       return false;
     },
@@ -19,5 +28,11 @@ $(document).ready(function() {
       window.location.href = $(ui.item).val();
       return false;
     }
+  });
+
+  $('#search_type').change(function() {
+    $('#search_query').autocomplete(
+      'option', 'source', autocomplete_source()
+    );
   });
 });

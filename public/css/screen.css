@@ -31,7 +31,7 @@ a:hover, a.ui-state-hover {
   background-color: black;
 }
 
-a img {
+a img, #spinner img {
   border:           none;
   vertical-align:   text-bottom;
 }
@@ -101,7 +101,7 @@ a img {
   height:           11px;
 }
 
-#search label {
+#search label, #spinner {
   display:          none;
 }
 

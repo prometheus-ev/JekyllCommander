@@ -133,7 +133,7 @@ module JekyllCommander
     end
 
     get '/*;search' do
-      matches = search(params[:term]) || []
+      matches = search(params[:term], params[:type]) || []
 
       content_type 'application/json'
       matches[0, 15].sort.to_json
