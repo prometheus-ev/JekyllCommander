@@ -60,7 +60,7 @@
       <% end %>
 
       <% if @path == '/' %>
-        <%= form_delete 'Discard copy!' %> |
+        <%= form_delete 'Reset copy!' %> |
         <%= form :post, '/' + u(';update') %>
           <p><input type="submit" value="Update copy" /></p>
         </form>

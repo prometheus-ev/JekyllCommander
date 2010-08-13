@@ -487,11 +487,14 @@ module JekyllCommander
     end
 
     def page
-      return @page if defined?(@page)
+      defined?(@page) ? @page : @page = load_page
+    end
 
-      @page = Page.load(repo_root, @path)
-      flash :error => "Unable to load page `#{@base}'." unless @page
-      @page
+    def load_page
+      page = Page.load(repo_root, @path)
+      flash :error => "Unable to load page `#{@base}'." unless page
+
+      page
     end
 
   end

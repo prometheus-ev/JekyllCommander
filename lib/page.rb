@@ -155,9 +155,9 @@ module JekyllCommander
     end
 
     def slug
-      @slug ||= @title && @title.replace_diacritics.
-        gsub(/[^a-zA-Z0-9]+/, '_').
-        gsub(/\A_+|_+\z/, '')
+      @slug ||= @title && @title.
+        replace_diacritics.downcase.
+        gsub(/\W+/, '-').gsub(/\A-|-\z/, '')
     end
 
     def title(lang = lang)

@@ -280,7 +280,7 @@ module JekyllCommander
     end
 
     def delete_page(new_name = nil)
-      if page
+      if page = new_name ? load_page : page()
         if page.destroy(git)
           action = new_name ? 'renamed' : 'deleted'
           flash :notice => "Page `#{@base}' successfully #{action}."
