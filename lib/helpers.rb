@@ -1,7 +1,7 @@
 require 'erb'
 require 'git'
 require 'open3'
-require 'active_support'
+require 'active_support/all'
 
 module JekyllCommander
 
