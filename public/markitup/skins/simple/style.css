@@ -47,6 +47,8 @@
 }
 /***************************************************************************************/
 /* first row of buttons */
+div.markItUpHeader { height: 22px; }
+
 .markItUpHeader ul li	{
 	list-style:none;
 	float:left;
