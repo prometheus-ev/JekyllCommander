@@ -14,7 +14,7 @@ module JekyllCommander
     class ::String
 
       def humanize
-        super.gsub(UPCASE_RE) { |m| m.upcase }
+        ActiveSupport::Inflector.humanize(self).gsub(UPCASE_RE) { |m| m.upcase }
       end
 
     end
