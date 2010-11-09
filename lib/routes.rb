@@ -43,7 +43,7 @@ module JekyllCommander
     end
 
     get '/*;status' do
-      @status = status_for(@path)
+      @status = status_for(@path_info)
       erb :status
     end
 
@@ -52,7 +52,7 @@ module JekyllCommander
         erb :diff
       else
         flash :notice => "File `#{@base}' unchanged..."
-        redirect url_for_file(@path)
+        redirect url_for_file(@path_info)
       end
     end
 
@@ -60,14 +60,14 @@ module JekyllCommander
       revert(@real_path)
 
       flash :notice => "Changes on `#{@base}' successfully reverted."
-      redirect url_for_file(@path)
+      redirect url_for_file(@path_info)
     end
 
     get '/*;add' do
       git.add(@real_path)
 
       flash :notice => "File `#{@base}' successfully added."
-      redirect url_for_file(@path)
+      redirect url_for_file(@path_info)
     end
 
     get %r{/.*;(?:site|staging|preview)} do
@@ -166,7 +166,7 @@ module JekyllCommander
     put '/*' do
       return erb(:index) unless page
 
-      if page.update(real_params, Page.lang(@path))
+      if page.update(real_params, Page.lang(@path_info))
         name = page.filename
 
         if page.write!(git)
@@ -196,7 +196,7 @@ module JekyllCommander
     end
 
     def preview_folder
-      preview(@path, @action) if @dir
+      preview(@path_info, @action) if @dir
     end
 
     def preview_page
@@ -231,7 +231,7 @@ module JekyllCommander
       name = params[:name]
 
       unless name.blank?
-        path = File.join(@path, name)
+        path = File.join(@path_info, name)
         base = File.basename(path)
         real_path = real_path(path)
 
@@ -253,7 +253,7 @@ module JekyllCommander
     end
 
     def create_page
-      @page = Page.new(repo_root, @path, params[:title], [
+      @page = Page.new(repo_root, @path_info, params[:title], [
         [:multilang, !params[:multilang].nil?],
         [:render,    !params[:render].nil?],
         [:markup,    params[:markup]],

@@ -235,12 +235,12 @@ module JekyllCommander
     end
 
     def extract_path
-      @path = request.path_info
-      @path, @action = $1, $2 if @path =~ %r{(.*)(?:;|%3B)(.*)}
+      @path_info = request.path_info
+      @path_info, @action = $1, $2 if @path_info =~ %r{(.*)(?:;|%3B)(.*)}
 
-      @real_path = real_path(@path)
-      @base = File.basename(@path)
-      @type = Page.type(@path)
+      @real_path = real_path(@path_info)
+      @base = File.basename(@path_info)
+      @type = Page.type(@path_info)
 
       @dir  = @base if File.directory?(@real_path)
       @file = @base if File.file?(@real_path)
@@ -449,7 +449,7 @@ module JekyllCommander
         redirect File.join(target, path)
       else
         flash :error => "Option `#{type}' not set..."
-        redirect url_for_file(@path)
+        redirect url_for_file(@path_info)
       end
     end
 
@@ -491,7 +491,7 @@ module JekyllCommander
     end
 
     def load_page
-      page = Page.load(repo_root, @path)
+      page = Page.load(repo_root, @path_info)
       flash :error => "Unable to load page `#{@base}'." unless page
 
       page
