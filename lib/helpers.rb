@@ -160,9 +160,9 @@ module JekyllCommander
 
       case value
         when Array
-          %Q{<textarea name="#{name}" id="#{id}" rows="4" cols="44">#{value.join("\r\n")}</textarea>}
+          %Q{<textarea name="#{name}" id="#{id}" rows="4" cols="44">#{h(value.join("\r\n"))}</textarea>}
         else
-          %Q{<input type="text" name="#{name}" id="#{id}" value="#{value}" size="50" />}
+          %Q{<input type="text" name="#{name}" id="#{id}" value="#{h(value)}" size="50" />}
       end
     end
 
