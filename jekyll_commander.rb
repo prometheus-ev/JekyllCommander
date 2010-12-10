@@ -38,7 +38,7 @@ configure :development do
   set :logger, Logger.new(STDOUT)
 end if opt[:logger].nil?
 
-%w[page helpers routes].each { |lib| require "lib/#{lib}" }
+%w[page post series helpers routes].each { |lib| require "lib/#{lib}" }
 
 include JekyllCommander::Routes
 helpers JekyllCommander::Helpers

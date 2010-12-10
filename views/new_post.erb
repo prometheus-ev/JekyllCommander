@@ -1,0 +1,38 @@
+<h2>New post</h2>
+
+<%= form_new :post %>
+  <p>
+    <label for="page_title">Title (english, required):</label><br />
+    <input type="text" name="title" id="page_title" size="50" />
+  </p>
+
+  <p>
+    <input type="checkbox" name="multilang" id="page_multilang" value="1" checked="checked" />
+    <label for="page_multilang">Should this page be multilingual?</label>
+  </p>
+
+  <p>
+    <label for="page_layout">Which layout do you want?</label>
+    <%= render_layout_header(:layout, 'post') %>
+  </p>
+
+  <p>
+    <label for="page_markup">Which markup language do you want?</label>
+    <%= options_for_markup_select %>
+  </p>
+
+  <p>
+    <label for="post_date">Date:</label><br />
+    <input type="text" name="date" id="post_date" size="50" value="<%= Time.now.strftime("%Y-%m-%d") %>" />
+  </p>
+
+  <p>
+    <label for="post_author">Author:</label><br />
+    <input type="text" name="author" id="post_author" size="50" value="<%= user %>" />
+  </p>
+
+  <p>
+    <input type="submit" value="Create post" />
+    | <%= link_to 'Cancel', relative_path %>
+  </p>
+</form>

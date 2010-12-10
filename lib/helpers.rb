@@ -497,6 +497,18 @@ module JekyllCommander
       page
     end
 
+    def write_page(type = 'page')
+      if page.write(git)
+        flash :notice => "#{type.humanize} `#{@base}' successfully created."
+        redirect relative_url(page.filename)
+      else
+        flash :error => page.errors
+        get_files
+
+        erb "new_#{type}".to_sym
+      end
+    end
+
   end
 
 end

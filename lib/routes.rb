@@ -260,15 +260,20 @@ module JekyllCommander
         [:layout,    params[:layout] || 'default']
       ])
 
-      if page.write(git)
-        flash :notice => "Page `#{@base}' successfully created."
-        redirect relative_url(page.filename)
-      else
-        flash :error => page.errors
-        get_files
+      write_page
+    end
 
-        erb :new_page
-      end
+    def create_post
+      @page = Post.new(repo_root, @path_info, params[:title], [
+        [:multilang, !params[:multilang].nil?],
+        [:render,    true],
+        [:markup,    params[:markup]],
+        [:layout,    params[:layout] || 'post'],
+        [:author,    params[:author]],
+        [:date,      params[:date] || Time.now.strftime("%Y-%m-%d")]
+      ])
+
+      write_page('post')
     end
 
     def delete_folder
