@@ -196,6 +196,24 @@ module JekyllCommander
       select << "\n</select>"
     end
 
+    def options_for_series_year_select(current = Time.now.year)
+      select = %Q{<select name="year" id="series_year">}
+      2.times { |i|
+        year = Time.now.year + i
+        select << %Q{\n<option value="#{year}"#{' selected="selected"' if year == current}>#{year}</option>}
+      }
+      select << "\n</select>"
+    end
+
+    def options_for_series_week_select(current = Date.today.cweek)
+      select = %Q{<select name="week" id="series_week">}
+      53.times { |i|
+        week = i + 1
+        select << %Q{\n<option value="#{week}"#{' selected="selected"' if week == Date.today.cweek}>#{week}</option>}
+      }
+      select << "\n</select>"
+    end
+
     def path_re(path, optional_slash = false)
       %r{\A#{Regexp.escape(path.chomp('/'))}#{optional_slash ? '/?' : '(?:/|\z)'}}
     end
@@ -507,6 +525,36 @@ module JekyllCommander
 
         erb "new_#{type}".to_sym
       end
+    end
+
+    def write_folder(name, path_info = @path_info)
+      unless name.blank?
+        path = File.join(path_info, name)
+        base = File.basename(path)
+        real_path = real_path(path)
+
+        unless File.exist?(real_path)
+          Dir.mkdir(real_path)
+
+          flash :notice => "Folder `#{base}' successfully created."
+
+          return path
+        else
+          flash :error => "Folder `#{base}' already exists."
+
+          return false
+        end
+      else
+        flash :error => "Required parameter `name' is missing!"
+
+        return false
+      end
+    end
+
+    def check_series_images
+      imgs = Series::IMAGES
+      imgs.delete_if { |img| File.exist?(File.join(pwd, img)) }
+      flash :error => "Images are missing but needed: #{imgs.join(', ')}" unless imgs.empty?
     end
 
   end

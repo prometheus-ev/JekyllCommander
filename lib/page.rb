@@ -23,7 +23,8 @@ module JekyllCommander
       '_posts'      => :post,
       'files'       => :file,
       'javascripts' => :javascript,
-      'stylesheets' => :stylesheet
+      'stylesheets' => :stylesheet,
+      'series'      => :series
     )
 
     LANGUAGES = %w[en de]

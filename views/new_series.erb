@@ -1,0 +1,33 @@
+<h2>New series</h2>
+
+<%= form_new :series %>
+  <p>
+    <label for="series_title">Title (english, required):</label><br />
+    <input type="text" name="title" id="series_title" size="50" />
+  </p>
+
+  <p>
+    <label for="page_year">Year</label> / <label for="series_week">Week</label>:<br />
+    <%= options_for_series_year_select %>/<%= options_for_series_week_select %>
+  </p>
+
+  <p>
+    <label for="series_layout">Which layout do you want?</label>
+    <%= render_layout_header(:layout, 'series') %>
+  </p>
+
+  <p>
+    <label for="page_markup">Which markup language do you want?</label>
+    <%= options_for_markup_select %>
+  </p>
+
+  <p>
+    <label for="series_author">Author:</label><br />
+    <input type="text" name="author" id="series_author" size="50" value="<%= user %>" />
+  </p>
+
+  <p>
+    <input type="submit" value="Create series" />
+    | <%= link_to 'Cancel', relative_path %>
+  </p>
+</form>

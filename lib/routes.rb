@@ -224,29 +224,13 @@ module JekyllCommander
       return erb(:index) unless page
 
       flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
+      check_series_images if page.type == :series
       erb :edit
     end
 
     def create_folder
-      name = params[:name]
-
-      unless name.blank?
-        path = File.join(@path_info, name)
-        base = File.basename(path)
-        real_path = real_path(path)
-
-        unless File.exist?(real_path)
-          Dir.mkdir(real_path)
-
-          flash :notice => "Folder `#{base}' successfully created."
-          redirect url_for(path)
-
-          return
-        else
-          flash :error => "Folder `#{base}' already exists."
-        end
-      else
-        flash :error => "Required parameter `name' is missing!"
+      if path = write_folder(params[:name])
+        redirect url_for(path)
       end
 
       erb :new_folder
@@ -274,6 +258,34 @@ module JekyllCommander
       ])
 
       write_page('post')
+    end
+
+    def create_series
+      series_path = '/series'
+      if params[:year] =~ /\A\d{4}\z/
+        year_path = File.join(series_path, params[:year])
+        write_folder(params[:year], series_path) unless File.exist?(real_path(year_path))
+
+        if params[:week] =~ /\A\d{1,2}\z/
+          week_path = File.join(year_path, params[:week])
+          write_folder(params[:week], year_path) unless File.exist?(real_path(week_path))
+          chdir(real_path(week_path))
+        else
+          flash :error => "Required parameter `week' is invalid!"
+        end
+      else
+        flash :error => "Required parameter `year' is invalid!"
+      end
+
+      @page = Series.new(repo_root, week_path, params[:title], [
+        [:markup,    params[:markup]],
+        [:layout,    params[:layout] || 'series'],
+        [:author,    params[:author]],
+        [:date,      params[:date] || Time.now.strftime("%Y/%m/%d")]
+      ])
+
+      write_page('series')
+
     end
 
     def delete_folder
