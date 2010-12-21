@@ -552,8 +552,7 @@ module JekyllCommander
     end
 
     def check_series_images
-      imgs = Series::IMAGES
-      imgs.delete_if { |img| File.exist?(File.join(pwd, img)) }
+      imgs = Series::IMAGES.reject { |img| File.exist?(File.join(pwd, img)) }
       flash :error => "Images are missing but needed: #{imgs.join(', ')}" unless imgs.empty?
     end
 
