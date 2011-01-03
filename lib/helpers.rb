@@ -196,22 +196,30 @@ module JekyllCommander
       select << "\n</select>"
     end
 
-    def options_for_series_year_select(current = Time.now.year)
+    def options_for_series_year_select(current = next_week.strftime('%G').to_i)
       select = %Q{<select name="year" id="series_year">}
+
       2.times { |i|
-        year = Time.now.year + i
+        year = current + i
         select << %Q{\n<option value="#{year}"#{' selected="selected"' if year == current}>#{year}</option>}
       }
+
       select << "\n</select>"
     end
 
-    def options_for_series_week_select(current = Date.today.cweek)
+    def options_for_series_week_select(current = next_week.strftime('%V').to_i)
       select = %Q{<select name="week" id="series_week">}
+
       53.times { |i|
         week = i + 1
         select << %Q{\n<option value="#{'%02d' % week}"#{' selected="selected"' if week == current}>#{week}</option>}
       }
+
       select << "\n</select>"
+    end
+
+    def next_week
+      1.week.from_now.at_beginning_of_week
     end
 
     def path_re(path, optional_slash = false)
