@@ -262,13 +262,15 @@ module JekyllCommander
 
     def create_series
       series_path = '/series'
+
       if params[:year] =~ /\A\d{4}\z/
         year_path = File.join(series_path, params[:year])
         write_folder(params[:year], series_path) unless File.exist?(real_path(year_path))
 
-        if params[:week] =~ /\A\d{1,2}\z/
+        if params[:week] =~ /\A\d{2}\z/
           week_path = File.join(year_path, params[:week])
           write_folder(params[:week], year_path) unless File.exist?(real_path(week_path))
+
           chdir(real_path(week_path))
         else
           flash :error => "Required parameter `week' is invalid!"
@@ -285,7 +287,6 @@ module JekyllCommander
       ])
 
       write_page('series')
-
     end
 
     def delete_folder

@@ -209,7 +209,7 @@ module JekyllCommander
       select = %Q{<select name="week" id="series_week">}
       53.times { |i|
         week = i + 1
-        select << %Q{\n<option value="#{week}"#{' selected="selected"' if week == Date.today.cweek}>#{week}</option>}
+        select << %Q{\n<option value="#{'%02d' % week}"#{' selected="selected"' if week == current}>#{week}</option>}
       }
       select << "\n</select>"
     end

@@ -4,11 +4,14 @@ module JekyllCommander
 
     IMAGES = Array.new(8) { |i| "0#{i + 1}.jpg" } + ['start.jpg']
 
+    DEFAULT_OPTIONS = [[:multilang, true], [:render, true]]
+
+    DATE_RE = %r{\A(\d{4})\W(\d{2})\W(\d{2})\z}
+
     attr_accessor :date, :author
 
     def initialize(root, base, title = nil, options = {})
-      options = [[:multilang, true], [:render, true]] + options
-      super(root, base, title, options)
+      super(root, base, title, DEFAULT_OPTIONS + options)
     end
 
     def slug
@@ -34,11 +37,9 @@ module JekyllCommander
     end
 
     def date=(value)
-      if value =~ /(\d{4})\W(\d{2})\W(\d{2})/
-        @date = "#{$1}/#{$2}/#{$3}"
-      else
-        @date = Time.now.strftime("%Y/%m/%d")
-      end
+      @date = value =~ DATE_RE ? Regexp.last_match.captures.join('/') :
+                                 Time.now.strftime("%Y/%m/%d")
+
       translated { |lang| header(lang)[:date] = @date }
     end
 
