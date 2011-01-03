@@ -224,7 +224,7 @@ module JekyllCommander
       return erb(:index) unless page
 
       flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
-      check_series_images if page.type == :series
+      check_series_images if page.type == :series && page.base.count('/') > 1
       erb :edit
     end
 
