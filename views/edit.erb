@@ -1,4 +1,4 @@
-<h2>Edit <%= @page.type %> <code><%= @path_info %></code></h2>
+<h2>Edit <%= type = @page.type %> <code><%= @path_info %></code></h2>
 
 <p>
   <%= language_links(@page) if @page.multilang? %>
@@ -34,7 +34,7 @@
   </p>
 
   <p>
-    <input type="submit" value="Save page" /> |
+    <input type="submit" value="Save <%= type %>" /> |
     <%= link_to 'Cancel', relative_path %>
   <% if dirty?(@real_path) %>
     &nbsp;
@@ -44,4 +44,4 @@
   </p>
 </form>
 
-<%= form_delete :page, relative_path(@file) %>
+<%= form_delete type.to_sym, relative_path(@file) %>
