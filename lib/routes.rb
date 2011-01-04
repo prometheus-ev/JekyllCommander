@@ -261,22 +261,13 @@ module JekyllCommander
     end
 
     def create_series
-      series_path = '/series'
+      if params[:number] =~ Series::NUMBER_RE and week = $1 and year = $2
+        year_path = write_folder(year, '/series', false)
+        week_path = write_folder(week, year_path, false)
 
-      if params[:year] =~ /\A\d{4}\z/
-        year_path = File.join(series_path, params[:year])
-        write_folder(params[:year], series_path) unless File.exist?(real_path(year_path))
-
-        if params[:week] =~ /\A\d{2}\z/
-          week_path = File.join(year_path, params[:week])
-          write_folder(params[:week], year_path) unless File.exist?(real_path(week_path))
-
-          chdir(real_path(week_path))
-        else
-          flash :error => "Required parameter `week' is invalid!"
-        end
+        chdir(week_path)
       else
-        flash :error => "Required parameter `year' is invalid!"
+        flash :error => "Required parameter `number' is invalid!"
       end
 
       @page = Series.new(repo_root, week_path, params[:title], [
@@ -284,7 +275,7 @@ module JekyllCommander
         [:layout,    params[:layout] || 'series'],
         [:author,    params[:author]],
         [:date,      params[:date] || Time.now.strftime("%Y/%m/%d")]
-      ])
+      ]) if week_path
 
       write_page('series')
     end

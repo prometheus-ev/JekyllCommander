@@ -223,3 +223,7 @@ li.current a {
 #markup_links {
   display:          block;
 }
+
+#page_number {
+  font-family:      monospace;
+}

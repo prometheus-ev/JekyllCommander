@@ -196,30 +196,19 @@ module JekyllCommander
       select << "\n</select>"
     end
 
-    def options_for_series_year_select(current = next_week.strftime('%G').to_i)
-      select = %Q{<select name="year" id="series_year">}
+    def options_for_series_number_select(current = 1.week.from_now.at_beginning_of_week)
+      select = %Q{<select name="number" id="page_number">}
 
-      2.times { |i|
-        year = current + i
-        select << %Q{\n<option value="#{year}"#{' selected="selected"' if year == current}>#{year}</option>}
+      -1.upto(52) { |i|
+        date = current + i.weeks
+
+        value = '%02d/%d' % %w[%V %G].map { |f| date.strftime(f).to_i }
+        range = [date, date.at_end_of_week].map { |d| d.strftime('%b %d %Y') }.join(' - ')
+
+        select << %Q{\n<option value="#{value}"#{' selected="selected"' if i.zero?}>#{value} (#{range})</option>}
       }
 
       select << "\n</select>"
-    end
-
-    def options_for_series_week_select(current = next_week.strftime('%V').to_i)
-      select = %Q{<select name="week" id="series_week">}
-
-      53.times { |i|
-        week = i + 1
-        select << %Q{\n<option value="#{'%02d' % week}"#{' selected="selected"' if week == current}>#{week}</option>}
-      }
-
-      select << "\n</select>"
-    end
-
-    def next_week
-      1.week.from_now.at_beginning_of_week
     end
 
     def path_re(path, optional_slash = false)
@@ -524,18 +513,20 @@ module JekyllCommander
     end
 
     def write_page(type = 'page')
-      if page.write(git)
-        flash :notice => "#{type.humanize} `#{@base}' successfully created."
+      prefix = "#{type.humanize} `#{@base}'"
+
+      if page && page.write(git)
+        flash :notice => "#{prefix} successfully created."
         redirect relative_url(page.filename)
       else
-        flash :error => page.errors
+        flash :error => page ? page.errors : "#{prefix} could not be created."
         get_files
 
         erb "new_#{type}".to_sym
       end
     end
 
-    def write_folder(name, path_info = @path_info)
+    def write_folder(name, path_info = @path_info, warn_if_exists = true)
       unless name.blank?
         path = File.join(path_info, name)
         base = File.basename(path)
@@ -548,9 +539,12 @@ module JekyllCommander
 
           return path
         else
-          flash :error => "Folder `#{base}' already exists."
-
-          return false
+          if warn_if_exists
+            flash :error => "Folder `#{base}' already exists."
+            return false
+          else
+            return path
+          end
         end
       else
         flash :error => "Required parameter `name' is missing!"

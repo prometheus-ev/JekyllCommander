@@ -6,7 +6,8 @@ module JekyllCommander
 
     DEFAULT_OPTIONS = [[:multilang, true], [:render, true]]
 
-    DATE_RE = %r{\A(\d{4})\W(\d{2})\W(\d{2})\z}
+    DATE_RE   = %r{\A(\d{4})\W(\d{2})\W(\d{2})\z}
+    NUMBER_RE = %r{\A(\d{2})\W(\d{4})\z}
 
     attr_accessor :date, :author
 
