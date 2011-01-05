@@ -1,0 +1,15 @@
+<h2>New file</h2>
+
+<%= form_new :file, true %>
+
+  <p>
+    <label for="file">Select file:</label><br />
+    <input type="file" name="file" id="file" />
+  </p>
+
+  <p>
+    <input type="submit" value="Upload file" />
+    | <%= link_to 'Cancel', relative_path %>
+  </p>
+
+</form>

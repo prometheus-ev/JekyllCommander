@@ -280,6 +280,16 @@ module JekyllCommander
       write_page('series')
     end
 
+    def create_file
+      if params[:file] && (filename = params[:file][:filename]) && (tempfile = params[:file][:tempfile])
+        write_upload_file(tempfile, @real_path, filename, git)
+        redirect relative_url
+      else
+        flash :error => "No file selected!"
+        erb :new_file
+      end
+    end
+
     def delete_folder
       git.remove(@real_path, :recursive => true) rescue nil
       FileUtils.rm_r(@real_path) if File.exist?(@real_path)

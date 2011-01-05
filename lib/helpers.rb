@@ -27,12 +27,13 @@ module JekyllCommander
       erb :"_#{page}", options.merge(:layout => false)
     end
 
-    def form(method = :post, url = relative_path)
+    def form(method = :post, url = relative_path, file_upload = false)
       unless %w[get post].include?(method.to_s)
         method_override, method = method, :post
       end
 
-      form = %Q{<form action="#{url_for(url)}" method="#{method}">}
+      form = %Q{<form action="#{url_for(url)}" method="#{method}"} +
+        %Q{#{' enctype="multipart/form-data"' if file_upload}>}
       form << %Q{\n<input type="hidden" name="_method" value="#{method_override}" />} if method_override
       form
     end
@@ -41,8 +42,9 @@ module JekyllCommander
       form(method, request.path_info)
     end
 
-    def form_new(type)
-      form + %Q{\n<input type="hidden" name="type" value="#{type}" />}
+    def form_new(type, file_upload = false)
+      form(:post, relative_path, file_upload) +
+        %Q{\n<input type="hidden" name="type" value="#{type}" />}
     end
 
     def form_delete(text, url = relative_path)
@@ -523,6 +525,13 @@ module JekyllCommander
         get_files
 
         erb "new_#{type}".to_sym
+      end
+    end
+
+    def write_upload_file(tempfile, path, name, git = nil)
+      File.open(File.join(path, name), 'wb') { |f| f.write(tempfile.read) }
+      if git && git.add(path)
+        flash :notice => "File `#{name}' successfully written."
       end
     end
 
