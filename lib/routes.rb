@@ -16,13 +16,38 @@ module JekyllCommander
       redirect url_for('/')
     end
 
+    get '/files/*;show' do
+      pass unless @file
+
+      content_type ContentType.of(@real_path)
+      File.read(@real_path)
+    end
+
     get '/files/*' do
+      pass unless @file
+
+      erb :edit_file
+    end
+
+    put '/files/*' do
       if @file
-        content_type ContentType.of(@real_path)
-        File.read(@real_path)
+        if params[:file_name] && !(filename = File.basename(params[:file_name])).empty?
+          if begin git.lib.mv(@real_path, File.join(pwd, filename)) rescue nil end
+            flash :notice => "File successfully renamed: `#{@file}' -> `#{filename}'"
+            redirect relative_url(filename)
+          else
+            flash :error => "Unable to rename file `#{@file}'."
+          end
+        end
       else
-        pass
+        flash :error => 'No file to change.'
       end
+
+      erb :edit_file
+    end
+
+    delete '/files/*' do
+      @file ? delete_file(@real_path, git) : not_found
     end
 
     post '/markitup/preview_:type' do
@@ -283,7 +308,7 @@ module JekyllCommander
     def create_file
       if params[:file] && (filename = params[:file][:filename]) && (tempfile = params[:file][:tempfile])
         write_upload_file(tempfile, @real_path, filename, git)
-        redirect relative_url
+        redirect relative_url(filename)
       else
         flash :error => "No file selected!"
         erb :new_file
@@ -312,6 +337,17 @@ module JekyllCommander
       end
 
       erb :index
+    end
+
+    def delete_file(path, git = nil)
+      git.remove(path) rescue nil if git # TODO: Dear Arne, don't forget to DRY this up! Cheers, Arne
+      if File.exist?(path)
+        flash :error => "Unable to delete file `#{path}'."
+        redirect relative_url(@file)
+      else
+        flash :notice => "File `#{@file}' successfully deleted."
+        redirect relative_url
+      end
     end
 
   end

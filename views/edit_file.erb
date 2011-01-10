@@ -1,0 +1,12 @@
+<h2>Edit: <code><%= link_to_file @file, @path_info, true  %></code></h2>
+
+<%= form :put, relative_path(@file) %>
+  <p>
+    <label for="file_name">File Name:</label><br />
+    <input type="text" name="file_name" id="file_name" value="<%= @file %>" size="50" />
+  </p>
+  <input type="submit" value="Save file" /> |
+  <%= link_to 'Cancel', relative_path %>
+</form>
+
+<%= form_delete :file, relative_path(@file) %>

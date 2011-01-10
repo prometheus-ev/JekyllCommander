@@ -78,12 +78,13 @@ module JekyllCommander
       html_tag(:a, name, html_options.merge(:href => url_for(url)))
     end
 
-    def link_to_file(file, name = file)
+    def link_to_file(file, name = file, show = nil)
       path, url = File.join(pwd, file), relative_path(file)
 
       if File.directory?(path)
         link_to("#{name}/", url)
       elsif File.file?(path)
+        url = url + ';show' if show
         link_to(name, url)
       else
         "#{name}?"
