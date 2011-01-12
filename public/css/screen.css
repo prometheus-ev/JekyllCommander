@@ -74,6 +74,7 @@ a img, #spinner img {
   border-right:     2px dashed gray;
   width:            286px;
   overflow:         auto;
+  padding-bottom:   6px;
 }
 
 #loginfo {

@@ -402,16 +402,24 @@ module JekyllCommander
     end
 
     def status_for(path)
-      prefix = path.sub(/\A\//, '')
-      re = %r{\A#{Regexp.escape(prefix)}(.*)}
+      (@status_for ||= {})[path] ||= begin
+        prefix = path.sub(/\A\//, '')
+        re = %r{\A#{Regexp.escape(prefix)}(.*)}
 
-      status, hash = git.status, { 'conflict' => conflicts(prefix) }
+        status, hash = git.status, { 'conflict' => conflicts(prefix) }
 
-      %w[added changed deleted untracked].each { |type|
-        hash[type] = status.send(type).map { |q, _| q[re, 1] }.compact
-      }
+        %w[added changed deleted untracked].each { |type|
+          hash[type] = status.send(type).map { |q, _| q[re, 1] }.compact
+        }
 
-      hash
+        hash
+      end
+    end
+
+    def status_summary(path = relative_pwd)
+      status_for(path).sort.map { |type, files|
+        %Q{<span class="#{type}">#{files.size}</span>}
+      }.join('/')
     end
 
     def annotated_diff(path)

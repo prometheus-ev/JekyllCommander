@@ -54,9 +54,9 @@
       </div>
 
       <div id="actions">
+        <%= link_to status_summary, relative_path(';status'), :title => 'Folder status' %> |
         <%= link_to "New #{@type}", relative_path(";new_#{@type}") %> |
-        <%= link_to 'New folder',   relative_path(';new_folder') %> |
-        <%= link_to 'Status',       relative_path(';status') %>
+        <%= link_to 'New folder',   relative_path(';new_folder') %>
 
       <% unless @file %>
         <br style="margin-bottom: 0.9em" />
@@ -73,6 +73,7 @@
       </div>
 
       <div id="site-actions">
+        <%= link_to status_summary('/'), root_url(';status'), :title => 'Root status' %> |
         <%= link_to 'Save changes',      root_url(';save') %> |
         <%= link_to 'Publish site',      root_url(';publish') %>
       </div>
