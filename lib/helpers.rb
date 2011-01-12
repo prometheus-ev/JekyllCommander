@@ -9,6 +9,8 @@ module JekyllCommander
 
     include ERB::Util
 
+    PATH_INFO_RE = %r{(.*)(?:;|%3B)(.*)}i
+
     UPCASE_RE = %r{\b(?:html|xml|url)\b}i
 
     class ::String
@@ -38,7 +40,7 @@ module JekyllCommander
     end
 
     def form_this(method = :post)
-      form(method, request.path_info)
+      form(method, request_info)
     end
 
     def form_new(type)
@@ -211,19 +213,38 @@ module JekyllCommander
       select << "\n</select>"
     end
 
-    def path_re(path, optional_slash = false)
-      %r{\A#{Regexp.escape(path.chomp('/'))}#{optional_slash ? '/?' : '(?:/|\z)'}}
+    def request_info
+      @request_info ||= request.path_info
     end
 
-    def pwd
-      @pwd ||= begin
-        path, re = session[:pwd], path_re(repo_root)
-        path =~ re && File.directory?(path) ? path : repo_root
+    def path_info
+      @path_info ||= begin
+        path_info = request_info
+        path_info, @action = $1, $2 if path_info =~ PATH_INFO_RE
+
+        @real_path = real_path(path_info)
+        @base = File.basename(path_info)
+        @type = Page.type(path_info)
+
+        if File.directory?(@real_path)
+          @dir  = @base
+        elsif File.file?(@real_path)
+          @file = @base
+        end
+
+        path_info
       end
     end
 
+    def pwd
+      @pwd ||= real_path(relative_pwd)
+    end
+
     def relative_pwd
-      @relative_pwd ||= pwd.sub(path_re(repo_root, true), '/')
+      @relative_pwd ||= begin
+        _path_info = path_info
+        @file ? File.dirname(_path_info) : _path_info
+      end
     end
 
     def relative_path(*args)
@@ -234,31 +255,30 @@ module JekyllCommander
       url_for(relative_path(*args))
     end
 
+    def root_path(*args)
+      path_for_file('/', *args)
+    end
+
+    def root_url(*args)
+      url_for(root_path(*args))
+    end
+
     def real_path(path)
       File.join(repo_root, path)
     end
 
+    def path_re(path, optional_slash = false)
+      %r{\A#{Regexp.escape(path.chomp('/'))}#{optional_slash ? '/?' : '(?:/|\z)'}}
+    end
+
     def chdir(path)
       @pwd = @relative_pwd = nil
-      session[:pwd] = path
       get_files
       pwd
     end
 
     def get_files(dir = pwd)
       @files = Dir.entries(dir).sort - options.ignore
-    end
-
-    def extract_path
-      @path_info = request.path_info
-      @path_info, @action = $1, $2 if @path_info =~ %r{(.*)(?:;|%3B)(.*)}
-
-      @real_path = real_path(@path_info)
-      @base = File.basename(@path_info)
-      @type = Page.type(@path_info)
-
-      @dir  = @base if File.directory?(@real_path)
-      @file = @base if File.file?(@real_path)
     end
 
     def trail_links
@@ -373,7 +393,7 @@ module JekyllCommander
     def check_conflict(oops = false)
       if conflict?
         flash :error => "#{oops ? 'Oops, now' : 'Sorry,'} you have conflicts!!"
-        redirect url_for('/' + u(';status'))
+        redirect root_url(';status')
 
         true
       else
@@ -464,7 +484,7 @@ module JekyllCommander
         redirect File.join(target, path)
       else
         flash :error => "Option `#{type}' not set..."
-        redirect url_for_file(@path_info)
+        redirect url_for_file(path_info)
       end
     end
 
@@ -506,7 +526,7 @@ module JekyllCommander
     end
 
     def load_page
-      page = Page.load(repo_root, @path_info)
+      page = Page.load(repo_root, path_info)
       flash :error => "Unable to load page `#{@base}'." unless page
 
       page
@@ -526,7 +546,7 @@ module JekyllCommander
       end
     end
 
-    def write_folder(name, path_info = @path_info, warn_if_exists = true)
+    def write_folder(name, path_info = path_info, warn_if_exists = true)
       unless name.blank?
         path = File.join(path_info, name)
         base = File.basename(path)

@@ -44,6 +44,9 @@
 
       <div id="files">
         <ul>
+        <% unless relative_pwd == '/' %>
+          <li><%= link_to_file('..') %></li>
+        <% end %>
         <% for file in @files %>
           <li<%= ' class="current"' if file == @file %>><%= link_to_file(file) %></li>
         <% end %>
@@ -59,9 +62,9 @@
         <br style="margin-bottom: 0.9em" />
       <% end %>
 
-      <% if @path_info == '/' %>
+      <% if path_info == '/' %>
         <%= form_delete 'Reset copy!' %> |
-        <%= form :post, '/' + u(';update') %>
+        <%= form :post, root_url(';update') %>
           <p><input type="submit" value="Update copy" /></p>
         </form>
       <% else %>
@@ -70,8 +73,8 @@
       </div>
 
       <div id="site-actions">
-        <%= link_to 'Save changes', '/' + u(';save') %> |
-        <%= link_to 'Publish site', '/' + u(';publish') %>
+        <%= link_to 'Save changes',      root_url(';save') %> |
+        <%= link_to 'Publish site',      root_url(';publish') %>
       </div>
     </div>
 

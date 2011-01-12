@@ -8,12 +8,11 @@ module JekyllCommander
 
     before do
       ensure_repo
-      extract_path
       get_files
     end
 
     get '' do
-      redirect url_for('/')
+      redirect root_url
     end
 
     get '/files/*' do
@@ -43,7 +42,7 @@ module JekyllCommander
     end
 
     get '/*;status' do
-      @status = status_for(@path_info)
+      @status = status_for(path_info)
       erb :status
     end
 
@@ -52,7 +51,7 @@ module JekyllCommander
         erb :diff
       else
         flash :notice => "File `#{@base}' unchanged..."
-        redirect url_for_file(@path_info)
+        redirect url_for_file(path_info)
       end
     end
 
@@ -60,14 +59,14 @@ module JekyllCommander
       revert(@real_path)
 
       flash :notice => "Changes on `#{@base}' successfully reverted."
-      redirect url_for_file(@path_info)
+      redirect url_for_file(path_info)
     end
 
     get '/*;add' do
       git.add(@real_path)
 
       flash :notice => "File `#{@base}' successfully added."
-      redirect url_for_file(@path_info)
+      redirect url_for_file(path_info)
     end
 
     get %r{/.*;(?:site|staging|preview)} do
@@ -78,7 +77,7 @@ module JekyllCommander
       pull or return
 
       flash :notice => "Copy of `#{repo_name}' successfully updated."
-      redirect url_for('/')
+      redirect root_url
     end
 
     get '/;save' do
@@ -94,7 +93,7 @@ module JekyllCommander
         erb :save
       else
         flash :error => 'Sorry, nothing to save yet...'
-        redirect url_for('/' + u(';status'))
+        redirect root_url(';status')
       end
     end
 
@@ -105,10 +104,10 @@ module JekyllCommander
         commit(@msg) or return
 
         flash :notice => 'Site successfully updated.'
-        redirect url_for('/')
+        redirect root_url
       else
         flash :error => "Required parameter `commit message' is missing or too short!"
-        redirect url_for('/' + u(';save'))
+        redirect root_url(';save')
       end
     end
 
@@ -117,7 +116,7 @@ module JekyllCommander
         flash :notice => 'NOTE: You have unsaved changes...' if dirty?
         erb :publish
       else
-        redirect url_for('/' + u(';save'))
+        redirect root_url(';save')
       end
     end
 
@@ -128,7 +127,7 @@ module JekyllCommander
         redirect options.site
       else
         flash :notice => 'Site successfully published.'
-        redirect url_for('/')
+        redirect root_url
       end
     end
 
@@ -159,14 +158,14 @@ module JekyllCommander
         send("create_#{params[:type]}")
       else
         flash :error => "No such folder `#{@base}'."
-        redirect url_for('/')
+        redirect root_url
       end
     end
 
     put '/*' do
       return erb(:index) unless page
 
-      if page.update(real_params, Page.lang(@path_info))
+      if page.update(real_params, Page.lang(path_info))
         name = page.filename
 
         if page.write!(git)
@@ -192,11 +191,11 @@ module JekyllCommander
 
     def file_not_found
       flash :error => "File not found `#{@base}'."
-      redirect url_for('/')
+      redirect root_url
     end
 
     def preview_folder
-      preview(@path_info, @action) if @dir
+      preview(path_info, @action) if @dir
     end
 
     def preview_page
@@ -237,7 +236,7 @@ module JekyllCommander
     end
 
     def create_page
-      @page = Page.new(repo_root, @path_info, params[:title], [
+      @page = Page.new(repo_root, path_info, params[:title], [
         [:multilang, !params[:multilang].nil?],
         [:render,    !params[:render].nil?],
         [:markup,    params[:markup]],
@@ -248,7 +247,7 @@ module JekyllCommander
     end
 
     def create_post
-      @page = Post.new(repo_root, @path_info, params[:title], [
+      @page = Post.new(repo_root, path_info, params[:title], [
         [:multilang, !params[:multilang].nil?],
         [:render,    true],
         [:markup,    params[:markup]],
