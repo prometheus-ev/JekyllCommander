@@ -4,9 +4,14 @@
   <%= language_links(@page) if @page.multilang? %>
 </p>
 
-<%= form :put, relative_path(@file) %>
+<%= form :put, relative_path(@file), type == :series %>
 <% if header = @page.header %>
+  <% descriptions = header.delete(:descriptions) if type == :series %>
   <%= header_fields(header) %>
+<% end %>
+
+<% if type == :series %>
+  <%= images_and_descriptions_fields(descriptions) %>
 <% end %>
 
 <% if body = @page.body %>

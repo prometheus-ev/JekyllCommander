@@ -190,6 +190,11 @@ module JekyllCommander
 
     put '/*' do
       return erb(:index) unless page
+      if page.type == :series
+        files = Series::IMAGES.map { |img| params.delete("#{img}") }.compact
+        # Why, Array#select does't want to do the job above?
+        write_series_images(files, pwd, git)
+      end
 
       if page.update(real_params, Page.lang(@path_info))
         name = page.filename

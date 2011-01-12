@@ -2,6 +2,7 @@ require 'erb'
 require 'git'
 require 'open3'
 require 'active_support/all'
+require 'RMagick'
 
 module JekyllCommander
 
@@ -51,6 +52,23 @@ module JekyllCommander
       text = "Delete #{text}" if text.is_a?(Symbol)
       onclick = %q{onclick='if(!confirm("Are your sure?"))return false;'}
       form(:delete, url) + %Q{\n<p><input type="submit" value="#{text}" #{onclick} /></p>\n</form>}
+    end
+
+    def images_and_descriptions_fields(descriptions = [])
+      out = ''
+
+      Series::IMAGES.each { |img|
+        out << %Q{<p><label for="file_#{img}">Select image ("#{name = img.sub(/.jpg\z/, '')}"):</label><br />\n}
+        out << %Q{<input type="file" name="#{img}" id="file_#{img}" /></p>\n}
+
+        unless img == 'start.jpg'
+          out << %Q{<p><label for="desc_#{img}">Description for image ("#{name}"):</label><br />\n}
+          out << %Q{<input type="text" name="descriptions[#{img_index = name.to_i - 1}]" id="desc_#{img}" }
+          out << %Q{value="#{descriptions[img_index] || ''}" size="50" /></p>\n}
+        end
+      }
+
+      return out
     end
 
     def html_tag(tag, content = nil, html_options = {})
@@ -276,6 +294,11 @@ module JekyllCommander
     end
 
     def real_params
+      if page.type == :series && params[:descriptions]
+        params[:header][:descriptions] = []
+        params.delete('descriptions').each { |k, v| params[:header][:descriptions][k.to_i] = v }
+      end
+
       @real_params ||= params.reject { |key, _|
         key == '_method' || key == 'splat'
       }
@@ -531,9 +554,7 @@ module JekyllCommander
 
     def write_upload_file(tempfile, path, name, git = nil)
       File.open(File.join(path, name), 'wb') { |f| f.write(tempfile.read) }
-      if git && git.add(path)
-        flash :notice => "File `#{name}' successfully written."
-      end
+      flash :notice => "File `#{name}' successfully written." if git && git.add(path)
     end
 
     def write_folder(name, path_info = @path_info, warn_if_exists = true)
@@ -566,6 +587,26 @@ module JekyllCommander
     def check_series_images
       imgs = Series::IMAGES.reject { |img| File.exist?(File.join(pwd, img)) }
       flash :error => "Images are missing but needed: #{imgs.join(', ')}" unless imgs.empty?
+    end
+
+    def write_series_images(files, path, git = nil)
+      files.each do |f|
+        name, tempfile = f[:name], f[:tempfile].path
+        if Series::IMAGES.include?(name) && (img = Magick::Image.read(tempfile)[0])
+          img = Magick::Image.read(tempfile)[0]
+          if img.format != 'JPEG'
+            flash :error => "Image `#{name}' have to be a JPEG!"
+          elsif img.rows != img.columns
+            flash :error => "Image `#{name}' have to be a square (like 120x120 pixel)!"
+          else
+            img.resize_to_fit!(name == 'start.jpg' ? 120 : 100)
+            img.write(File.join(path, name))
+            flash :notice => "File `#{name}' successfully written." if git && git.add(path)
+          end
+        else
+          flash :error => "Could not read image `#{name}' is missing!"
+        end
+      end
     end
 
   end
