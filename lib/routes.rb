@@ -9,6 +9,9 @@ module JekyllCommander
     before do
       ensure_repo
       get_files
+
+      # default content-type
+      content_type :xhtml
     end
 
     get '' do
