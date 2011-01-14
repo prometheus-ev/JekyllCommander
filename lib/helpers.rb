@@ -58,13 +58,14 @@ module JekyllCommander
       out = ''
 
       Series::IMAGES.each { |img|
-        out << %Q{<p><label for="file_#{img}">Select image ("#{name = img.sub(/.jpg\z/, '')}"):</label><br />\n}
+        out << %Q{<p><label for="file_#{img}">Select image ("#{name = img.sub(/.jpg\z/, '')}"):}
+        out << series_image_check(File.join(pwd, img)) + '</label><br />'
         out << %Q{<input type="file" name="#{img}" id="file_#{img}" /></p>\n}
 
         unless img == 'start.jpg'
           out << %Q{<p><label for="desc_#{img}">Description for image ("#{name}"):</label><br />\n}
           out << %Q{<input type="text" name="descriptions[#{img_index = name.to_i - 1}]" id="desc_#{img}" }
-          out << %Q{value="#{descriptions[img_index] || ''}" size="50" /></p>\n}
+          out << %Q{value="#{h(descriptions[img_index]) || ''}" size="50" /></p>\n}
         end
       }
 
@@ -584,11 +585,6 @@ module JekyllCommander
       end
     end
 
-    def check_series_images
-      imgs = Series::IMAGES.reject { |img| File.exist?(File.join(pwd, img)) }
-      flash :error => "Images are missing but needed: #{imgs.join(', ')}" unless imgs.empty?
-    end
-
     def write_series_images(files, path, git = nil)
       files.each do |f|
         name, tempfile = f[:name], f[:tempfile].path
@@ -607,6 +603,12 @@ module JekyllCommander
           flash :error => "Could not read image `#{name}' is missing!"
         end
       end
+    end
+
+    def series_image_check(path)
+      icon, alt = File.exists?(path) ? ['accept.png', 'Image available'] :
+        ['exclamation.png', 'Image missing!']
+      image_tag(icon, {:alt => alt})
     end
 
   end
