@@ -3,6 +3,7 @@ require 'git'
 require 'open3'
 require 'active_support/all'
 require 'RMagick'
+require "filemagic"
 
 module JekyllCommander
 
@@ -530,6 +531,10 @@ module JekyllCommander
 
     def page
       defined?(@page) ? @page : @page = load_page
+    end
+
+    def text?(path)
+      FileMagic.new(FileMagic::MAGIC_MIME).file(path) =~ /\Atext\//
     end
 
     def load_page

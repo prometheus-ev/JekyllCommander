@@ -16,38 +16,11 @@ module JekyllCommander
       redirect url_for('/')
     end
 
-    get '/files/*;show' do
+    get '/*;show' do
       pass unless @file
 
       content_type ContentType.of(@real_path)
       File.read(@real_path)
-    end
-
-    get '/files/*' do
-      pass unless @file
-
-      erb :edit_file
-    end
-
-    put '/files/*' do
-      if @file
-        if params[:file_name] && !(filename = File.basename(params[:file_name])).empty?
-          if begin git.lib.mv(@real_path, File.join(pwd, filename)) rescue nil end
-            flash :notice => "File successfully renamed: `#{@file}' -> `#{filename}'"
-            redirect relative_url(filename)
-          else
-            flash :error => "Unable to rename file `#{@file}'."
-          end
-        end
-      else
-        flash :error => 'No file to change.'
-      end
-
-      erb :edit_file
-    end
-
-    delete '/files/*' do
-      @file ? delete_file(@real_path, git) : not_found
     end
 
     post '/markitup/preview_:type' do
@@ -190,6 +163,8 @@ module JekyllCommander
 
     put '/*' do
       return erb(:index) unless page
+      return update_file(params) unless text?(@real_path)
+
       if page.type == :series
         files = Series::IMAGES.map { |img| params.delete("#{img}") }.compact
         # Why, Array#select does't want to do the job above?
@@ -217,7 +192,15 @@ module JekyllCommander
     end
 
     delete '/*' do
-      @dir ? delete_folder : @file ? delete_page : not_found
+      if @dir
+        delete_folder
+      elsif @file && text?(@real_path)
+        delete_page
+      elsif @file
+        delete_file(@real_path, git)
+      else
+        not_found
+      end
     end
 
     def file_not_found
@@ -251,6 +234,7 @@ module JekyllCommander
 
       chdir(File.dirname(@real_path))
 
+      return erb (:edit_file) unless text?(@real_path)
       return erb(:index) unless page
 
       flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
@@ -317,6 +301,23 @@ module JekyllCommander
         flash :error => "No file selected!"
         erb :new_file
       end
+    end
+
+    def update_file(params)
+      if @file
+        if params[:file_name] && !(filename = File.basename(params[:file_name])).empty?
+          if begin git.lib.mv(@real_path, File.join(pwd, filename)) rescue nil end
+            flash :notice => "File successfully renamed: `#{@file}' -> `#{filename}'"
+            redirect relative_url(filename)
+          else
+            flash :error => "Unable to rename file `#{@file}'."
+          end
+        end
+      else
+        flash :error => 'No file to change.'
+      end
+
+      erb :edit_file
     end
 
     def delete_folder
