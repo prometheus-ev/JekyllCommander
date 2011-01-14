@@ -18,13 +18,11 @@ module JekyllCommander
       redirect root_url
     end
 
-    get '/files/*' do
-      if @file
-        content_type ContentType.of(@real_path)
-        File.read(@real_path)
-      else
-        pass
-      end
+    get '/*;show' do
+      pass unless @file
+
+      content_type ContentType.of(@real_path)
+      File.read(@real_path)
     end
 
     post '/markitup/preview_:type' do
@@ -167,6 +165,13 @@ module JekyllCommander
 
     put '/*' do
       return erb(:index) unless page
+      return update_file(params) unless text?(@real_path)
+
+      if page.type == :series
+        files = Series::IMAGES.map { |img| params.delete("#{img}") }.compact
+        # Why, Array#select does't want to do the job above?
+        write_series_images(files, pwd, git)
+      end
 
       if page.update(real_params, Page.lang(path_info))
         name = page.filename
@@ -189,7 +194,15 @@ module JekyllCommander
     end
 
     delete '/*' do
-      @dir ? delete_folder : @file ? delete_page : not_found
+      if @dir
+        delete_folder
+      elsif @file && text?(@real_path)
+        delete_page
+      elsif @file
+        delete_file(@real_path, git)
+      else
+        not_found
+      end
     end
 
     def file_not_found
@@ -223,10 +236,10 @@ module JekyllCommander
 
       chdir(File.dirname(@real_path))
 
+      return erb (:edit_file) unless text?(@real_path)
       return erb(:index) unless page
 
       flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
-      check_series_images if page.type == :series && page.base.count('/') > 1
       erb :edit
     end
 
@@ -282,6 +295,33 @@ module JekyllCommander
       write_page('series')
     end
 
+    def create_file
+      if params[:file] && (filename = params[:file][:filename]) && (tempfile = params[:file][:tempfile])
+        write_upload_file(tempfile, @real_path, filename, git)
+        redirect relative_url(filename)
+      else
+        flash :error => "No file selected!"
+        erb :new_file
+      end
+    end
+
+    def update_file(params)
+      if @file
+        if params[:file_name] && !(filename = File.basename(params[:file_name])).empty?
+          if begin git.lib.mv(@real_path, File.join(pwd, filename)) rescue nil end
+            flash :notice => "File successfully renamed: `#{@file}' -> `#{filename}'"
+            redirect relative_url(filename)
+          else
+            flash :error => "Unable to rename file `#{@file}'."
+          end
+        end
+      else
+        flash :error => 'No file to change.'
+      end
+
+      erb :edit_file
+    end
+
     def delete_folder
       git.remove(@real_path, :recursive => true) rescue nil
       FileUtils.rm_r(@real_path) if File.exist?(@real_path)
@@ -304,6 +344,17 @@ module JekyllCommander
       end
 
       erb :index
+    end
+
+    def delete_file(path, git = nil)
+      git.remove(path) rescue nil if git # TODO: Dear Arne, don't forget to DRY this up! Cheers, Arne
+      if File.exist?(path)
+        flash :error => "Unable to delete file `#{path}'."
+        redirect relative_url(@file)
+      else
+        flash :notice => "File `#{@file}' successfully deleted."
+        redirect relative_url
+      end
     end
 
   end
