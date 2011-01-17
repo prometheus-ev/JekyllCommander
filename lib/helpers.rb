@@ -15,7 +15,6 @@ module JekyllCommander
 
     UPCASE_RE = %r{\b(?:html|xml|url)\b}i
 
-    PREVIEW_FILE_SUFFIX = %w[jpg png gif]
 
     class ::String
 
@@ -102,13 +101,13 @@ module JekyllCommander
       html_tag(:a, name, html_options.merge(:href => url_for(url)))
     end
 
-    def link_to_file(file, name = file, show = nil)
+    def link_to_file(file, name = file)
       path, url = File.join(pwd, file), relative_path(file)
 
       if File.directory?(path)
         link_to("#{name}/", url)
       elsif File.file?(path)
-        link_to(name, "#{url}#{u(';show') if show}")
+        link_to(name, url)
       else
         "#{name}?"
       end
@@ -301,8 +300,8 @@ module JekyllCommander
       pwd
     end
 
-    def get_files(dir = pwd)
-      @files = Dir.entries(dir).sort - options.ignore
+    def get_files
+      @files = Dir.entries(pwd).sort - options.ignore
     end
 
     def trail_links
@@ -317,9 +316,9 @@ module JekyllCommander
     end
 
     def real_params
-      if page.type == :series && params[:descriptions]
-        params[:header][:descriptions] = []
-        params.delete('descriptions').each { |k, v| params[:header][:descriptions][k.to_i] = v }
+      if series? and descriptions = params.delete(:descriptions)
+        params[:header][:descriptions] = descriptions.
+          inject([]) { |a, (k, v)| a[k.to_i] = v; a }
       end
 
       @real_params ||= params.reject { |key, _|
@@ -560,12 +559,22 @@ module JekyllCommander
       stdout.read.split("\0").each { |path| path.sub!(path_re, '') }
     end
 
-    def page
-      defined?(@page) ? @page : @page = load_page
+    def mime_type
+      @mime_type ||= FileMagic.fm(:mime).file(@real_path)
     end
 
-    def text?(path)
-      FileMagic.fm(:mime).file(path) =~ /\Atext\//
+    def binary?
+      defined?(@is_binary) ? @is_binary : @is_binary =
+        [:file, :series].include?(Page.type(path_info)) && mime_type !~ /\Atext\//
+    end
+
+    def series?
+      defined?(@is_series) ? @is_series : @is_series =
+        page.type == :series && path_info.count('/') > 3
+    end
+
+    def page
+      defined?(@page) ? @page : @page = load_page
     end
 
     def load_page
@@ -589,9 +598,9 @@ module JekyllCommander
       end
     end
 
-    def write_upload_file(tempfile, path, name, git = nil)
-      File.open(File.join(path, name), 'wb') { |f| f.write(tempfile.read) }
-      flash :notice => "File `#{name}' successfully written." if git && git.add(path)
+    def write_upload_file(tempfile, path, name)
+      FileUtils.mv(tempfile.path, File.join(path, name))
+      flash :notice => "File `#{name}' successfully written." if git.add(path)
     end
 
     def write_folder(name, path_info = path_info, warn_if_exists = true)
@@ -621,35 +630,31 @@ module JekyllCommander
       end
     end
 
-    def write_series_images(files, path, git = nil)
-      files.each do |f|
-        name, tempfile = f[:name], f[:tempfile].path
+    def write_series_images(files, path)
+      files.each { |file|
+        name, tempfile = file[:name], file[:tempfile].path
+
         if Series::IMAGES.include?(name) && (img = Magick::Image.read(tempfile)[0])
           if img.format != 'JPEG'
-            flash :error => "Image `#{name}' have to be a JPEG!"
+            flash :error => "Image `#{name}' has to be a JPEG!"
           elsif img.rows != img.columns
-            flash :error => "Image `#{name}' have to be a square (like 120x120 pixel)!"
+            flash :error => "Image `#{name}' has to be a square (like 120x120 px)!"
           else
             img.resize_to_fit!(name == 'start.jpg' ? 120 : 100)
             img.write(File.join(path, name))
-            flash :notice => "File `#{name}' successfully written." if git && git.add(path)
+
+            flash :notice => "File `#{name}' successfully written." if git.add(path)
           end
         else
           flash :error => "Could not read image `#{name}' is missing!"
         end
-      end
+      }
     end
 
     def series_image_check(path)
       icon, alt = File.exists?(path) ? ['accept.png', 'Image available'] :
         ['exclamation.png', 'Image missing!']
       image_tag(icon, {:alt => alt})
-    end
-
-    def preview?(filename)
-      if filename =~ /\.(\w*)\z/
-        PREVIEW_FILE_SUFFIX.include?($1.downcase)
-      end
     end
 
   end

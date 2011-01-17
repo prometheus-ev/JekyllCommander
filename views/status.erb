@@ -14,6 +14,8 @@
       [<%= link_to 'Diff', relative_path("#{file};diff") %>]
     <% elsif type == 'untracked' %>
       [<%= link_to 'Add',  relative_path("#{file};add") %>]
+    <% elsif type == 'deleted' %>
+      [<%= link_to 'Undo', relative_path("#{file};revert") %>]
     <% else %>
       [<%= link_to 'Diff', relative_path("#{file};diff") %> |
        <%= link_to 'Undo', relative_path("#{file};revert") %>]

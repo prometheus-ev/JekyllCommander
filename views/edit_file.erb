@@ -1,4 +1,4 @@
-<h2>Edit: <code><%= link_to_file @file, @path_info, true %></code></h2>
+<h2>Edit file <code><%= path_info %></code></h2>
 
 <%= form :put, relative_path(@file) %>
   <p>
@@ -11,12 +11,17 @@
 
 <%= form_delete :file, relative_path(@file) %>
 
-<% if preview?(@file) %>
-  <hr />
+<br />
 
-  <h2>Preview</h2>
+<% url  = url_for_file(@path_info) + u(';show')
+   link = %Q{<h3>[#{link_to 'Show', url}]</h3>} %>
 
-  <iframe src="<%= "#{url_for_file(@path_info)};show" %>" width="90%" height="500" name="<%= @file %>">
+<% if mime_type =~ /\Aimage\// %>
+  <%= link.insert(4, 'Preview ') %>
+
+  <iframe src="<%= url %>" width="90%" height="500" name="<%= @file %>">
     <p>No iframe support? Need a <a href="http://browser-update.org/de/update.html">better web browser?</a></p>
   </iframe>
+<% else %>
+  <%= link %>
 <% end %>

@@ -165,13 +165,11 @@ module JekyllCommander
 
     put '/*' do
       return erb(:index) unless page
-      return update_file(params) unless text?(@real_path)
+      return update_file(params) if binary?
 
-      if page.type == :series
-        files = Series::IMAGES.map { |img| params.delete("#{img}") }.compact
-        # Why, Array#select does't want to do the job above?
-        write_series_images(files, pwd, git)
-      end
+      write_series_images(Series::IMAGES.map { |img|
+        params.delete(img)
+      }.compact, pwd) if series?
 
       if page.update(real_params, Page.lang(path_info))
         name = page.filename
@@ -196,10 +194,8 @@ module JekyllCommander
     delete '/*' do
       if @dir
         delete_folder
-      elsif @file && text?(@real_path)
-        delete_page
       elsif @file
-        delete_file(@real_path, git)
+        binary? ? delete_file : delete_page
       else
         not_found
       end
@@ -236,7 +232,7 @@ module JekyllCommander
 
       chdir(File.dirname(@real_path))
 
-      return erb(:edit_file) unless text?(@real_path)
+      return erb(:edit_file) if binary?
       return erb(:index) unless page
 
       flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
@@ -297,10 +293,10 @@ module JekyllCommander
 
     def create_file
       if params[:file] && (filename = params[:file][:filename]) && (tempfile = params[:file][:tempfile])
-        write_upload_file(tempfile, @real_path, filename, git)
+        write_upload_file(tempfile, @real_path, filename)
         redirect relative_url(filename)
       else
-        flash :error => "No file selected!"
+        flash :error => 'No file selected!'
         erb :new_file
       end
     end
@@ -348,13 +344,14 @@ module JekyllCommander
       erb :index
     end
 
-    def delete_file(path, git = nil)
-      git.remove(path) rescue nil if git # TODO: Dear Arne, don't forget to DRY this up! Cheers, Arne
-      if File.exist?(path)
-        flash :error => "Unable to delete file `#{path}'."
+    def delete_file
+      git.remove(@real_path)
+
+      if File.exist?(@real_path)
+        flash :error => "Unable to delete file `#{@base}'."
         redirect relative_url(@file)
       else
-        flash :notice => "File `#{@file}' successfully deleted."
+        flash :notice => "File `#{@base}' successfully deleted."
         redirect relative_url
       end
     end
