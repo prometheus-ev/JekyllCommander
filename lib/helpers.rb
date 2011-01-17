@@ -15,6 +15,8 @@ module JekyllCommander
 
     UPCASE_RE = %r{\b(?:html|xml|url)\b}i
 
+    PREVIEW_FILE_SUFFIX = %w[jpg png gif]
+
     class ::String
 
       def humanize
@@ -642,6 +644,12 @@ module JekyllCommander
       icon, alt = File.exists?(path) ? ['accept.png', 'Image available'] :
         ['exclamation.png', 'Image missing!']
       image_tag(icon, {:alt => alt})
+    end
+
+    def preview?(filename)
+      if filename =~ /\.(\w*)\z/
+        PREVIEW_FILE_SUFFIX.include?($1.downcase)
+      end
     end
 
   end
