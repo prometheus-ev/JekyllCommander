@@ -1,9 +1,9 @@
 require 'erb'
 require 'git'
 require 'open3'
-require 'active_support/all'
 require 'RMagick'
-require "filemagic"
+require 'filemagic'
+require 'active_support/all'
 
 module JekyllCommander
 
@@ -106,8 +106,7 @@ module JekyllCommander
       if File.directory?(path)
         link_to("#{name}/", url)
       elsif File.file?(path)
-        url = url + ';show' if show
-        link_to(name, url)
+        link_to(name, "#{url}#{u(';show') if show}")
       else
         "#{name}?"
       end
@@ -564,7 +563,7 @@ module JekyllCommander
     end
 
     def text?(path)
-      FileMagic.new(FileMagic::MAGIC_MIME).file(path) =~ /\Atext\//
+      FileMagic.fm(:mime).file(path) =~ /\Atext\//
     end
 
     def load_page
@@ -624,7 +623,6 @@ module JekyllCommander
       files.each do |f|
         name, tempfile = f[:name], f[:tempfile].path
         if Series::IMAGES.include?(name) && (img = Magick::Image.read(tempfile)[0])
-          img = Magick::Image.read(tempfile)[0]
           if img.format != 'JPEG'
             flash :error => "Image `#{name}' have to be a JPEG!"
           elsif img.rows != img.columns

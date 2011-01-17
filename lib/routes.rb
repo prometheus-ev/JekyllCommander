@@ -236,7 +236,7 @@ module JekyllCommander
 
       chdir(File.dirname(@real_path))
 
-      return erb (:edit_file) unless text?(@real_path)
+      return erb(:edit_file) unless text?(@real_path)
       return erb(:index) unless page
 
       flash :error => 'NOTE: This page has conflicts!!' if conflict?(@real_path)
@@ -308,10 +308,12 @@ module JekyllCommander
     def update_file(params)
       if @file
         if params[:file_name] && !(filename = File.basename(params[:file_name])).empty?
-          if begin git.lib.mv(@real_path, File.join(pwd, filename)) rescue nil end
+          begin
+            git.lib.mv(@real_path, File.join(pwd, filename))
+
             flash :notice => "File successfully renamed: `#{@file}' -> `#{filename}'"
             redirect relative_url(filename)
-          else
+          rescue Git::GitExecuteError
             flash :error => "Unable to rename file `#{@file}'."
           end
         end
