@@ -223,7 +223,7 @@ module JekyllCommander
 
     def destroy(git = nil)
       translated(:fullpath).reject { |path|
-        git.remove(path) rescue nil if git
+        git.rm({ :force => true }, '--', path) if git
         File.exist?(path) ? File.delete(path) : true
       }.each { |path|
         @errors << "Unable to delete file `#{path}'."
@@ -243,7 +243,7 @@ module JekyllCommander
       translated { |lang|
         path = fullpath(lang)
         File.open(path, 'w') { |f| f.puts to_s(lang) }
-        git.add(path) if git
+        git.add({}, '--', path) if git
       } if valid?
     end
 

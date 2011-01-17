@@ -12,22 +12,26 @@
   <tr>
     <td colspan="3">
       <%= @diff_total[:files] %> file<%= 's' unless @diff_total[:files] == 1 %> changed,
-      <%= @diff_total[:insertions] %> insertions(+),
+      <%= @diff_total[:additions] %> additions(+),
       <%= @diff_total[:deletions] %> deletions(-)
     </td>
   </tr>
-<% for file, stats in @diff_stats[:files].sort %>
-  <% insertions, deletions = stats.values_at(:insertions, :deletions) %>
+<% for file, stats in @diff_stats.sort %>
+  <% additions, deletions = stats.values_at(:additions, :deletions) %>
   <tr>
     <td class="file">
       <%= link_to_file file %>
     </td>
     <td class="num">
-      <%= insertions + deletions %>
+      <%= additions + deletions %>
       [<%= link_to 'Diff', relative_path("#{file};diff") %>]
     </td>
     <td class="stat">
-      <span class="insertions"><%= '+' * insertions %></span><span class="deletions"><%= '-' * deletions %></span>
+      <span class="additions"><%=
+        additions > 30 ? additions : '+' * additions
+      %></span><span class="deletions"><%=
+        deletions > 30 ? deletions : '-' * deletions
+      %></span>
     </td>
   </tr>
 <% end %>

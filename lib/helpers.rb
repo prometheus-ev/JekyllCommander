@@ -1,5 +1,5 @@
 require 'erb'
-require 'git'
+require 'grit'
 require 'open3'
 require 'RMagick'
 require 'filemagic'
@@ -11,10 +11,21 @@ module JekyllCommander
 
     include ERB::Util
 
+    CONFLICT_MARKER = '<' * 7
+
+    STATUS_TYPE_MAP = {
+      'A' => 'added',
+      'M' => 'changed',
+      'D' => 'deleted'
+    }
+
+    UNTRACKED_RE = %r{\A\?\?\s+}
+
+    NUMSTAT_RE   = %r{^([-\d]+)\s+([-\d]+)\s+(.+)}
+
     PATH_INFO_RE = %r{(.*)(?:;|%3B)(.*)}i
 
-    UPCASE_RE = %r{\b(?:html|xml|url)\b}i
-
+    UPCASE_RE    = %r{\b(?:html|xml|url)\b}i
 
     class ::String
 
@@ -354,21 +365,56 @@ module JekyllCommander
       @repo_root ||= File.join(options.tmpdir, "#{repo_name}-#{u(user)}")
     end
 
-    def git
-      @git ||= Git.open(repo_root, :log => options.logger)
+    def repo(cmd = nil, *args, &block)
+      @repo ||= begin
+        Grit::Git.git_timeout = 300
+
+        if logger = options.logger
+          Grit.logger = logger unless logger == true
+          Grit.debug  = true
+        end
+
+        Grit::Repo.new(repo_root)
+      end
+
+      return @repo unless cmd
+
+      Dir.chdir(repo_root) { @repo.send(cmd, *args, &block) }
+    end
+
+    def git(cmd = nil, *args, &block)
+      return repo.git unless cmd
+
+      options = args.last.is_a?(Hash) ? args.pop : {}
+      args.insert(cmd == :native ? 1 : 0, options)
+
+      path = options.delete(:path)
+      args.push('--').concat(Array(path)) if path
+
+      if native_cmd = cmd.to_s.sub!(/!\z/, '')
+        args.unshift(native_cmd)
+        cmd = :native
+      end
+
+      git = options.delete(:git) || git()
+      Dir.chdir(repo_root) { git.send(cmd, *args, &block) }
     end
 
     def ensure_repo
-      if File.directory?(File.join(repo_root, '.git'))
+      if File.directory?(git_dir = File.join(repo_root, '.git'))
         pull if pull?
       else
-        base, name = File.split(repo_root)
-        git = Git.clone(options.repo, name, :path => base, :bare => false)
+        Dir.mkdir(repo_root) unless File.directory?(repo_root)
 
-        git.config('user.name',  user_name)
-        git.config('user.email', user_email)
+        git(:clone, options.repo, repo_root,
+          :base => false, :git => Grit::Git.new(git_dir))
 
-        git.config('core.sharedRepository', true)
+        config = repo(:config)
+
+        config['user.name']  = user_name
+        config['user.email'] = user_email
+
+        config['core.sharedRepository'] = true
 
         rake
       end
@@ -380,39 +426,56 @@ module JekyllCommander
     end
 
     def pull
-      stash = git.lib.stash_save('about to pull')
+      stash = git(:stash, :save, 'about to pull')
 
-      git.pullpull
+      git(:pull, 'origin', 'master')
 
       session[:pulled]    = repo_root
       session[:pulled_at] = Time.now.utc
 
-      begin
-        git.lib.stash_apply
-      rescue Git::GitExecuteError
-        # conflict!!
-      ensure
-        git.lib.stash_clear
-      end if stash
+      git(:stash, :pop) unless stash.blank?
 
       !check_conflict(true)
     end
 
     def dirty?(path = nil)
-      diff_total = if path
-        git.diff.path(path).index_stats[:total]
+      if path || !@diff_total
+        !git(:diff_index, 'HEAD', :path => path).empty?
       else
-        @diff_total || git.diff.index_stats[:total]
+        @diff_total[:files] > 0
       end
+    end
 
-      !diff_total[:files].zero?
+    def diff_stats
+      total, stats = Hash.new(0), {}
+
+      git(:diff_index, 'HEAD', :numstat => true).scan(NUMSTAT_RE) { |add, del, file|
+        total[:files] += 1
+
+        total[:additions] += add = add.to_i
+        total[:deletions] += del = del.to_i
+
+        stats[file] = { :additions => add, :deletions => del }
+      }
+
+      [total, stats]
+    end
+
+    def untracked(path = default = Object.new)
+      if default
+        @untracked ||= untracked(nil)
+      else
+        git(:status, :path => path, :short => true, :untracked => 'all').
+          split($/).map { |line| line.sub!(UNTRACKED_RE, '') }.compact
+      end
     end
 
     def conflicts(path = default = Object.new)
       if default
         @conflicts ||= conflicts(nil)
       else
-        git.grep('<' * 7, path, :object => :nil, :name_only => true)
+        git(:grep, :e => CONFLICT_MARKER,
+          :path => path, :name_only => true).split($/)
       end
     end
 
@@ -436,10 +499,20 @@ module JekyllCommander
         prefix = path.sub(/\A\//, '')
         re = %r{\A#{Regexp.escape(prefix)}(.*)}
 
-        status, hash = git.status, { 'conflict' => conflicts(prefix) }
+        hash = {
+          'conflict'  => conflicts(prefix),
+          'untracked' => untracked(prefix)
+        }.each_value { |files|
+          files.map! { |file_path| file_path[re, 1] }
+        }
 
-        %w[added changed deleted untracked].each { |type|
-          hash[type] = status.send(type).map { |q, _| q[re, 1] }.compact
+        STATUS_TYPE_MAP.each_value { |key| hash[key] = [] }
+
+        repo(:status).each { |status_file|
+          if key = STATUS_TYPE_MAP[status_file.type]
+            file_path = status_file.path[re, 1]
+            hash[key] << file_path if file_path
+          end
         }
 
         hash
@@ -453,61 +526,63 @@ module JekyllCommander
     end
 
     def annotated_diff(path)
-      git.diff.path(path).patch.split($/).map { |row|
-        [case row
-           when /\A(?:diff|index)\s/  then :preamble
-           when /\A(?:new|deleted)\s/ then :preamble
-           when /\A(?:---|\+\+\+)\s/  then :preamble
-           when /\A@@\s/              then :hunk
-           when /\A-/                 then :deletion
-           when /\A\+/                then :insertion
-           else                            :context
-         end, h(row).sub(/\A\s+/) { |m| '&nbsp;' * m.length }.
-                     sub(/\s+\z/) { |m| %Q{<span class="trailing_space">#{'&nbsp;' * m.length}</span>} }]
+      git(:diff!, :path => path).split($/).map { |line|
+        type = case line
+          when /\A(?:diff|index|new|deleted|[+-]{3})\s/ then :preamble
+          when /\A@@\s/                                 then :hunk
+          when /\A-/                                    then :deletion
+          when /\A\+/                                   then :insertion
+          else                                               :context
+        end
+
+        content = h(line)
+        content.sub!(/\A\s+/) { |m| '&nbsp;' * m.length }
+        content.sub!(/\s+\z/) { |m|
+          %Q{<span class="trailing_space">#{'&nbsp;' * m.length}</span>}
+        }
+
+        [type, content]
       }
     end
 
     def revert(path)
-      git.reset(nil, :path_limiter => path, :quiet => true)
-      git.checkout_index(:path_limiter => path, :index => true, :force => true)
+      git(:reset,          :path => path, :quiet => true)
+      git(:checkout_index, :path => path, :index => true, :force => true)
     end
 
     def commit(msg)
       if pull
-        git.commit_all(msg)
-        git.push  # TODO: handle non-fast-forward?
+        repo(:commit_all, msg)
+        git(:push, 'origin', 'master')  # TODO: handle non-fast-forward?
 
         true
       end
     end
 
     def publish?
-      git.fetch
+      git(:fetch, 'origin')
 
-      @tags = git.tags.reverse
-      @logs = git.log(99)
-      @logs.between(@tags.first) unless @tags.empty?
-
-      @logs.any? || @tags.any?
+      if (@tags = repo(:tags)).empty?
+        !(@logs = repo(:log)).empty?
+      else
+        @logs = repo(:log, "#{@tags.first}..")
+      end
     end
 
     def publish(tag)
       if tag == '_new'
-        tag = "jc-#{Time.now.to_f}"
-        git.add_tag(tag)
+        git(:tag, tag = "jc-#{Time.now.to_f}")
       else
         # delete tag so we can re-push it
-        git.push('origin', ":#{tag}")
+        git(:push, 'origin', ":#{tag}")
       end
 
-      git.push('origin', tag)
+      git(:push, 'origin', tag)
     end
 
     def rake(*args)
       # TODO: error handling!
-      Dir.chdir(repo_root) {
-        system('rake', *args)
-      }
+      Dir.chdir(repo_root) { system('rake', *args) }
     end
 
     def preview(path, type = nil)
@@ -600,7 +675,7 @@ module JekyllCommander
 
     def write_upload_file(tempfile, path, name)
       FileUtils.mv(tempfile.path, File.join(path, name))
-      flash :notice => "File `#{name}' successfully written." if git.add(path)
+      flash :notice => "File `#{name}' successfully written." if git(:add, :path => path)
     end
 
     def write_folder(name, path_info = path_info, warn_if_exists = true)
@@ -643,7 +718,7 @@ module JekyllCommander
             img.resize_to_fit!(name == 'start.jpg' ? 120 : 100)
             img.write(File.join(path, name))
 
-            flash :notice => "File `#{name}' successfully written." if git.add(path)
+            flash :notice => "File `#{name}' successfully written." if git(:add, :path => path)
           end
         else
           flash :error => "Could not read image `#{name}' is missing!"

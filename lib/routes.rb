@@ -66,7 +66,7 @@ module JekyllCommander
     end
 
     get '/*;add' do
-      git.add(@real_path)
+      git(:add, :path => @real_path)
 
       flash :notice => "File `#{@base}' successfully added."
       redirect url_for_file(path_info)
@@ -86,8 +86,7 @@ module JekyllCommander
     get '/;save' do
       check_conflict and return
 
-      @diff_stats = git.diff.index_stats
-      @diff_total = @diff_stats[:total]
+      @diff_total, @diff_stats = diff_stats
 
       if dirty?
         @msg = params[:msg]
@@ -307,12 +306,10 @@ module JekyllCommander
     def update_file(params)
       if @file
         if params[:file_name] && !(filename = File.basename(params[:file_name])).empty?
-          begin
-            git.lib.mv(@real_path, File.join(pwd, filename))
-
+          if git(:mv, :path => [@real_path, File.join(pwd, filename)])
             flash :notice => "File successfully renamed: `#{@file}' -> `#{filename}'"
             redirect relative_url(filename)
-          rescue Git::GitExecuteError
+          else
             flash :error => "Unable to rename file `#{@file}'."
           end
         end
@@ -324,7 +321,7 @@ module JekyllCommander
     end
 
     def delete_folder
-      git.remove(@real_path, :recursive => true) rescue nil
+      git(:rm, :path => @real_path, :force => true, :recursive => true)
       FileUtils.rm_r(@real_path) if File.exist?(@real_path)
 
       flash :notice => "Folder `#{@base}' successfully deleted."
@@ -348,7 +345,7 @@ module JekyllCommander
     end
 
     def delete_file
-      git.remove(@real_path)
+      git(:rm, :path => @real_path, :force => true)
 
       if File.exist?(@real_path)
         flash :error => "Unable to delete file `#{@base}'."

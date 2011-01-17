@@ -168,7 +168,7 @@ li.current a {
   font-weight:      bold;
 }
 
-.diff_stats .insertions {
+.diff_stats .additions {
   color:            green;
 }
 

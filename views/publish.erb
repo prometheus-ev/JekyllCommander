@@ -7,8 +7,13 @@
     <option value="_new">New...</option>
   <% end %>
   <% for tag in @tags %>
-    <% log = tag.log(1).first or next %>
-    <option value="<%= tag.name %>"><%= log.date.strftime('%Y-%m-%d %H:%M:%S %Z') %> (<%= log.author.name %>)</option>
+    <option value="<%= tag.name %>">
+    <% if commit = tag.commit %>
+      <%= commit.authored_date.strftime('%Y-%m-%d %H:%M:%S %Z') %> (<%= commit.author.name %>)
+    <% else %>
+      <%= tag.name %>
+    <% end %>
+    </option>
   <% end %>
   </select>
   <input type="submit" value="Publish site" />

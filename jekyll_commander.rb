@@ -4,8 +4,6 @@ require 'rubygems'
 require 'sinatra'
 require 'yaml'
 
-gem 'blackwinter-git'
-
 DEFAULT_OPTIONS = {
   :sessions => true,            # enable/disable cookie based sessions
   :logger   => nil,             # set Logger instance, or false
