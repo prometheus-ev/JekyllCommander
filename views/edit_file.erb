@@ -16,7 +16,7 @@
 <% url  = url_for_file(@path_info) + u(';show')
    link = %Q{<h3>[#{link_to 'Show', url}]</h3>} %>
 
-<% if mime_type =~ /\Aimage\// %>
+<% if file_type =~ /\Aimage\// %>
   <%= link.insert(4, 'Preview ') %>
 
   <iframe src="<%= url %>" width="90%" height="500" name="<%= @file %>">

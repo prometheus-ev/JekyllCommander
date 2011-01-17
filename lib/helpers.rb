@@ -559,13 +559,13 @@ module JekyllCommander
       stdout.read.split("\0").each { |path| path.sub!(path_re, '') }
     end
 
-    def mime_type
-      @mime_type ||= FileMagic.fm(:mime).file(@real_path)
+    def file_type
+      @file_type ||= FileMagic.fm(:mime).file(@real_path)
     end
 
     def binary?
       defined?(@is_binary) ? @is_binary : @is_binary =
-        [:file, :series].include?(Page.type(path_info)) && mime_type !~ /\Atext\//
+        [:file, :series].include?(Page.type(path_info)) && file_type !~ /\Atext\//
     end
 
     def series?
