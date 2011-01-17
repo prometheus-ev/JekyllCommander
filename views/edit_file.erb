@@ -10,3 +10,11 @@
 </form>
 
 <%= form_delete :file, relative_path(@file) %>
+
+<hr />
+
+<h2>Preview</h2>
+
+<iframe src="<%= "#{url_for_file(@path_info)};show" %>" width="90%" height="500" name="<%= @file %>">
+  <p>No iframe support? Need a <a href="http://browser-update.org/de/update.html">better web browser?</a></p>
+</iframe>

@@ -41,6 +41,10 @@ a img, #spinner img {
   vertical-align:   text-bottom;
 }
 
+iframe {
+  border: none;
+}
+
 .notice, .error {
   font-weight:      bold;
   color:            gray;
