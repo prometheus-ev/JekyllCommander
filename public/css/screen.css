@@ -9,6 +9,11 @@ body, p, ol, ul, td, textarea {
   line-height:      18px;
 }
 
+textarea {
+  font-family:      'Courier New', Courier, monospace;
+  font-size:        12px;
+}
+
 pre, .diff {
   background-color: #eee;
   padding:          10px;
