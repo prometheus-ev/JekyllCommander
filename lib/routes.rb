@@ -7,11 +7,13 @@ module JekyllCommander
   module Routes
 
     before do
-      ensure_repo
-      get_files
+      unless request_info =~ /__sinatra__/
+        ensure_repo
+        get_files
 
-      # default content-type
-      content_type :xhtml
+        # default content-type
+        content_type :xhtml
+      end
     end
 
     get '' do
@@ -151,6 +153,7 @@ module JekyllCommander
     end
 
     get '/*' do
+      pass if request_info =~ /__sinatra__/
       render_folder || render_page || file_not_found
     end
 
