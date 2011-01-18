@@ -99,7 +99,6 @@ module JekyllCommander
     end
 
     def url_for(path)
-      path.sub!(/\A#{repo_root}/, '')
       path.start_with?('/') ? "#{request.script_name}#{path}".gsub(%r{/+}, '/') : path
     end
 
@@ -666,7 +665,7 @@ module JekyllCommander
 
       if page && page.write(git)
         flash :notice => "#{prefix} successfully created."
-        redirect url_for(page.fullpath)
+        redirect url_for(File.join('/', page.base, page.filename))
       else
         flash :error => page ? page.errors : "#{prefix} could not be created."
         get_files
