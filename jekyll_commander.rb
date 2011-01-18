@@ -31,10 +31,14 @@ abort 'No repo to serve!' unless opt[:repo]
 
 configure { set DEFAULT_OPTIONS.merge(opt) }
 
-configure :development do
+if opt[:logger].nil?
   require 'logger'
-  set :logger, Logger.new(STDOUT)
-end if opt[:logger].nil?
+
+  log = development? ? STDOUT :
+        production?  ? STDERR : nil
+
+  configure { set :logger, Logger.new(log) } if log
+end
 
 %w[page post series helpers routes].each { |lib| require "lib/#{lib}" }
 
