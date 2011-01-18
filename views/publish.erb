@@ -7,11 +7,11 @@
     <option value="_new">New...</option>
   <% end %>
   <% for tag in @tags %>
-    <option value="<%= tag.name %>">
+    <option value="<%=h tag.name %>">
     <% if commit = tag.commit %>
-      <%= commit.authored_date.strftime('%Y-%m-%d %H:%M:%S %Z') %> (<%= commit.author.name %>)
+      <%= commit.authored_date.strftime('%Y-%m-%d %H:%M:%S %Z') %> (<%=h commit.author.name %>)
     <% else %>
-      <%= tag.name %>
+      <%=h tag.name %>
     <% end %>
     </option>
   <% end %>
@@ -26,9 +26,9 @@
 <% for log in @logs %>
   <tr>
     <td class="date"><%= log.date.strftime('%Y-%m-%d %H:%M:%S %Z') %></td>
-    <td class="author"><%= log.author.name %></td>
+    <td class="author"><%=h log.author.name %></td>
     <td>-</td>
-    <td><%= log.message %></td>
+    <td><%=h log.message %></td>
   </tr>
 <% end %>
 </table>
