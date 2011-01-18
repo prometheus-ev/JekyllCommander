@@ -565,7 +565,7 @@ module JekyllCommander
       if (@tags = repo(:tags)).empty?
         !(@logs = repo(:log)).empty?
       else
-        @logs = repo(:log, "#{@tags.first}..")
+        @logs = repo(:log, "#{@tags.first.name}..")
       end
     end
 
