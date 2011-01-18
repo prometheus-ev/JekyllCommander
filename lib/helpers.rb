@@ -551,22 +551,21 @@ module JekyllCommander
     end
 
     def commit(msg)
-      if pull
-        repo(:commit_all, msg)
-        git(:push, 'origin', 'master')  # TODO: handle non-fast-forward?
+      return unless pull
 
-        true
-      end
+      repo(:commit_all, msg)
+      git(:push, 'origin', 'master')  # TODO: handle non-fast-forward?
+
+      true
     end
 
     def publish?
       git(:fetch, 'origin')
 
-      if (@tags = repo(:tags)).empty?
-        !(@logs = repo(:log)).empty?
-      else
-        @logs = repo(:log, "#{@tags.first.name}..")
-      end
+      @tags = repo(:tags).sort_by { |tag| tag.commit.authored_date }.reverse
+      @logs = repo(:log, ['origin', @tags.empty? ? 'HEAD' : "#{@tags.first.name}.."])
+
+      @logs.any? || @tags.any?
     end
 
     def publish(tag)
