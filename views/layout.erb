@@ -64,7 +64,7 @@
 
       <% if path_info == '/' %>
         <%= form_delete 'Reset copy!' %> |
-        <%= form :post, root_url(';update') %>
+        <%= form :post, root_path(';update') %>
           <p><input type="submit" value="Update copy" /></p>
         </form>
       <% else %>
