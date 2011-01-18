@@ -389,6 +389,8 @@ module JekyllCommander
       return repo.git unless cmd
 
       options = args.last.is_a?(Hash) ? args.pop : {}
+      options[:raise] = true unless options.has_key?(:raise)
+
       args.insert(cmd == :native ? 1 : 0, options)
 
       path = options.delete(:path)
@@ -401,6 +403,9 @@ module JekyllCommander
 
       git = options.delete(:git) || git()
       Dir.chdir(repo_root) { git.send(cmd, *args, &block) }
+    rescue Grit::Git::CommandFailed => err
+      flash :error => "#{err}\n\n#{err.err}"
+      nil
     end
 
     def ensure_repo
@@ -429,16 +434,19 @@ module JekyllCommander
     end
 
     def pull
-      stash = git(:stash, :save, 'about to pull')
+      stash = git(:stash, :save, '-q', 'about to pull')
 
-      git(:pull, 'origin', 'master')
-
-      session[:pulled]    = repo_root
-      session[:pulled_at] = Time.now.utc
+      if git(:pull, 'origin', 'master')
+        session[:pulled]    = repo_root
+        session[:pulled_at] = Time.now.utc
+      else
+        failed = true
+        redirect root_url
+      end
 
       git(:stash, :pop) unless stash.blank?
 
-      !check_conflict(true)
+      !failed && !check_conflict(true)
     end
 
     def dirty?(path = nil)
@@ -477,8 +485,8 @@ module JekyllCommander
       if default
         @conflicts ||= conflicts(nil)
       else
-        git(:grep, :e => CONFLICT_MARKER,
-          :path => path, :name_only => true).split($/)
+        git(:grep, :e => CONFLICT_MARKER, :path => path,
+            :name_only => true, :raise => false).split($/)
       end
     end
 

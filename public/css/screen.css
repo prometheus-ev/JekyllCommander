@@ -51,6 +51,8 @@ iframe {
   border-width:     1px;
   border-style:     dashed;
   padding:          2px 4px;
+  white-space:      pre;
+  overflow:         auto;
 }
 
 .notice {
