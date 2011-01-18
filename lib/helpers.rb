@@ -27,6 +27,8 @@ module JekyllCommander
 
     UPCASE_RE    = %r{\b(?:html|xml|url)\b}i
 
+    PASS_RE      = %r{\A/(?:__sinatra__|markitup)/}
+
     class ::String
 
       def humanize
@@ -729,6 +731,10 @@ module JekyllCommander
       icon, alt = File.exists?(path) ? ['accept.png', 'Image available'] :
         ['exclamation.png', 'Image missing!']
       image_tag(icon, {:alt => alt})
+    end
+
+    def pass?
+      defined?(@pass) ? @pass : @pass = request_info =~ PASS_RE
     end
 
   end

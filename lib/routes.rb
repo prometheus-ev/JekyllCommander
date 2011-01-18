@@ -7,7 +7,7 @@ module JekyllCommander
   module Routes
 
     before do
-      unless request_info =~ /__sinatra__/
+      unless pass?
         ensure_repo
         get_files
 
@@ -29,10 +29,6 @@ module JekyllCommander
 
     post '/markitup/preview_:type' do
       preview_for(params[:data], params[:type])
-    end
-
-    get '/markitup/*' do
-      not_found
     end
 
     get '/*;new_:type' do
@@ -152,7 +148,7 @@ module JekyllCommander
     end
 
     get '/*' do
-      pass if request_info =~ /__sinatra__/
+      pass if pass?
       render_folder || render_page || file_not_found
     end
 
