@@ -166,8 +166,9 @@ module JekyllCommander
       flash = session[:flash]
 
       hash.each { |key, value|
-        flash[key] = Array(flash[key]).flatten unless flash[key].is_a?(Array)
-        flash[key].concat(Array(value).flatten)
+        flash[key] = [flash[key], value].map { |v|
+          v ? v.is_a?(Array) ? v : [v] : []
+        }.inject { |a, b| a.concat(b) }
       }
 
       flash
