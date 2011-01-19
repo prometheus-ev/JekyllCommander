@@ -117,6 +117,17 @@ iframe {
   display:          none;
 }
 
+#files {
+  max-height:       520px;
+  overflow:         auto;
+  margin-bottom:    6px;
+}
+
+#files ul {
+  padding-left:     18px;
+  margin-bottom:    6px;
+}
+
 #actions form, #actions form p {
   display:          inline;
 }
