@@ -1,7 +1,3 @@
-require 'maruku'
-require 'redcloth'
-require 'nuggets/util/content_type'
-
 module JekyllCommander
 
   module Routes
@@ -55,14 +51,14 @@ module JekyllCommander
     end
 
     get '/*;revert' do
-      revert(@real_path)
+      git.revert(@real_path)
 
       flash :notice => "Changes on `#{@base}' successfully reverted."
       redirect url_for_file(path_info)
     end
 
     get '/*;add' do
-      git(:add, :path => @real_path)
+      git.add(@real_path)
 
       flash :notice => "File `#{@base}' successfully added."
       redirect url_for_file(path_info)
@@ -82,7 +78,7 @@ module JekyllCommander
     get '/;save' do
       check_conflict and return
 
-      @diff_total, @diff_stats = diff_stats
+      @diff_total, @diff_stats = git.diff_stats
 
       if dirty?
         @msg = params[:msg]
@@ -96,12 +92,15 @@ module JekyllCommander
     end
 
     post '/;save' do
-      @msg = params[:msg]
+      msg = params[:msg]
 
-      if @msg.is_a?(String) && @msg.length > 12
-        commit(@msg) or return
+      if msg.is_a?(String) && msg.length > 12
+        if pull && git.commit_all(msg) && git.push
+          flash :notice => 'Site successfully updated.'
+        else
+          flash :error => 'An error occurred while trying to save your changes...'
+        end
 
-        flash :notice => 'Site successfully updated.'
         redirect root_url
       else
         flash :error => "Required parameter `commit message' is missing or too short!"
@@ -302,7 +301,7 @@ module JekyllCommander
     def update_file(params)
       if @file
         if params[:file_name] && !(filename = File.basename(params[:file_name])).empty?
-          if git(:mv, :path => [@real_path, File.join(pwd, filename)])
+          if git.mv(@real_path, File.join(pwd, filename))
             flash :notice => "File successfully renamed: `#{@file}' -> `#{filename}'"
             redirect relative_url(filename)
           else
@@ -317,7 +316,7 @@ module JekyllCommander
     end
 
     def delete_folder
-      git(:rm, :path => @real_path, :force => true, :recursive => true)
+      git.rm(@real_path, :recursive => true)
       FileUtils.rm_r(@real_path) if File.exist?(@real_path)
 
       flash :notice => "Folder `#{@base}' successfully deleted."
@@ -341,7 +340,7 @@ module JekyllCommander
     end
 
     def delete_file
-      git(:rm, :path => @real_path, :force => true)
+      git.rm(@real_path)
 
       if File.exist?(@real_path)
         flash :error => "Unable to delete file `#{@base}'."

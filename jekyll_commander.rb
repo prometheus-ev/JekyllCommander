@@ -1,12 +1,26 @@
 #! /usr/bin/env ruby
 
-require 'rubygems'
-require 'sinatra'
-require 'yaml'
+__DIR__ = File.expand_path('..', __FILE__)
+
+%w[
+  rubygems
+  erb fileutils open3 yaml
+  active_support/all filemagic maruku
+  nuggets/util/content_type nuggets/util/i18n
+  redcloth RMagick sinatra
+].each { |lib|
+  require lib
+}
+
+%w[
+  git helpers page post routes series
+].each { |lib|
+  require File.join(__DIR__, 'lib', lib)
+}
 
 DEFAULT_OPTIONS = {
   :sessions => true,            # enable/disable cookie based sessions
-  :logger   => nil,             # set Logger instance, or false
+  :logger   => nil,             # set Logger instance, or true
   :repo     => nil,             # set Git repo URL (required)
   :site     => nil,             # set site URL
   :staging  => nil,             # set staging URL
@@ -14,9 +28,12 @@ DEFAULT_OPTIONS = {
   :email    => '%s@localhost',  # set user's e-mail address (used for Git)
 
   # set temporary directory for Git repo clones
-  :tmpdir => File.expand_path('../tmp', __FILE__),
+  :tmpdir => File.join(__DIR__, 'tmp'),
 
-  # set list of files to ignore
+  # path to config file (not an option, really)
+  :config => File.join(__DIR__, 'config.yaml'),
+
+  # set list of files to ignore in folder listing
   :ignore => %w[
     . .. .git .gitignore
     _site _site.tmp _site.old
@@ -24,23 +41,17 @@ DEFAULT_OPTIONS = {
   ]
 }
 
-cfg = File.expand_path('../config.yaml', __FILE__)
-opt = File.readable?(cfg) ? YAML.load_file(cfg) : {}
+cfg = DEFAULT_OPTIONS.delete(:config)
+opt = DEFAULT_OPTIONS.merge(File.readable?(cfg) ? YAML.load_file(cfg) : {})
 
 abort 'No repo to serve!' unless opt[:repo]
 
-configure { set DEFAULT_OPTIONS.merge(opt) }
-
-if opt[:logger].nil?
+if opt[:logger] == true
   require 'logger'
-
-  log = development? ? STDOUT :
-        production?  ? STDERR : nil
-
-  configure { set :logger, Logger.new(log) } if log
+  opt[:logger] = Logger.new(STDERR)
 end
 
-%w[page post series helpers routes].each { |lib| require "lib/#{lib}" }
+configure { set opt }
 
 include JekyllCommander::Routes
 helpers JekyllCommander::Helpers
