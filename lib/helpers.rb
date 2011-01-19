@@ -81,7 +81,7 @@ module JekyllCommander
 
         unless img == 'start.jpg'
           out << %Q{<p><label for="desc_#{img}">Description for image ("#{name}"):</label><br />\n}
-          out << %Q{<input type="text" name="descriptions[#{img_index = name.to_i - 1}]" id="desc_#{img}" }
+          out << %Q{<input type="text" name="header[descriptions[#{img_index = name.to_i - 1}]]" id="desc_#{img}" }
           out << %Q{value="#{h(descriptions[img_index]) || ''}" size="50" /></p>\n}
         end
       }
@@ -329,7 +329,7 @@ module JekyllCommander
     end
 
     def real_params
-      if series? and descriptions = params.delete(:descriptions)
+      if series? and descriptions = params[:header].delete('descriptions')
         params[:header][:descriptions] = descriptions.
           inject([]) { |a, (k, v)| a[k.to_i] = v; a }
       end
