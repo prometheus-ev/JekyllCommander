@@ -606,6 +606,8 @@ module JekyllCommander
 
             flash :notice => "File `#{name}' successfully written." if git.add(path)
           end
+
+          img.destroy!
         else
           flash :error => "Could not read image `#{name}' is missing!"
         end
@@ -613,9 +615,10 @@ module JekyllCommander
     end
 
     def series_image_check(path)
-      icon, alt = File.exists?(path) ? ['accept.png', 'Image available'] :
-        ['exclamation.png', 'Image missing!']
-      image_tag(icon, {:alt => alt})
+      icon, alt = File.exists?(path) ? ['accept.png',      'Image available'] :
+                                       ['exclamation.png', 'Image missing!']
+
+      image_tag(icon, :alt => alt)
     end
 
     def pass?
