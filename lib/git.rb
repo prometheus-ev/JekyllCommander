@@ -157,8 +157,11 @@ module JekyllCommander
         init_cmd(:init, args, &block)
       end
 
-      def log(*args)
-        repo_cmd(:log, args)
+      def log(commit = 'master', options = {})
+        path = options.delete(:path)
+        commit = Array(commit) << '--' << path if path
+
+        repo_cmd(:log, [commit, nil, options])
       end
 
       def mv(src, dst)
@@ -189,6 +192,10 @@ module JekyllCommander
       def rm(path, *args)
         translate_options!(args.last, :recursive => :r)
         git_cmd(:rm, args, :path => path, :force => true)
+      end
+
+      def show(sha, path = nil, *args)
+        diff_cmd(:show, path, sha, *args)
       end
 
       def stash(cmd, *args)

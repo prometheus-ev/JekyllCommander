@@ -16,13 +16,6 @@ module JekyllCommander
       redirect root_url
     end
 
-    get '/*;show' do
-      pass unless @file
-
-      content_type ContentType.of(@real_path)
-      File.read(@real_path)
-    end
-
     post '/markitup/preview_:type' do
       preview_for(params[:data], params[:type])
     end
@@ -41,8 +34,16 @@ module JekyllCommander
       erb :status
     end
 
+    get '/*;log' do
+      get_logs(@real_path)
+      erb :log
+    end
+
     get '/*;diff' do
-      unless (@diff = annotated_diff(@real_path)).empty?
+      @sha = params[:sha]
+      @diff = annotated_diff(@real_path, @sha)
+
+      unless @diff.empty?
         erb :diff
       else
         flash :notice => "File `#{@base}' unchanged..."
@@ -140,6 +141,13 @@ module JekyllCommander
       @matches = search(@query, @query_type) || []
 
       erb :search
+    end
+
+    get '/*;show' do
+      pass unless @file
+
+      content_type ContentType.of(@real_path)
+      File.read(@real_path)
     end
 
     get '/*;edit' do

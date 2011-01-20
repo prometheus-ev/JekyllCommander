@@ -9,9 +9,7 @@
   <%= link_to 'Cancel', relative_path %>
 </form>
 
-<% @file_url = url_for_file(@path_info) + u(';show') %>
-
-<% if file_type =~ /\Aimage\// %>
+<% if @file_url && file_type =~ /\Aimage\// %>
   <br />
 
   <iframe src="<%= @file_url %>" width="90%" height="500" name="<%= @file %>">

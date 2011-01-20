@@ -184,11 +184,23 @@ li.current a {
   color:            red;
 }
 
+.commit_log {
+  border-collapse:  collapse;
+}
+
+.commit_log tr.local {
+  background-color: silver;
+}
+
+.commit_log tr.remote {
+  background-color: red;
+}
+
 .commit_log td {
   font-size:        smaller;
   vertical-align:   top;
-  white-space:      pre;
   line-height:      13px;
+  padding:          2px 4px;
 }
 
 .commit_log td.date,
@@ -214,6 +226,18 @@ li.current a {
   padding:          0;
 }
 
+.diff td.commit {
+  color:            maroon;
+}
+
+.diff td.header {
+  color:            navy;
+}
+
+.diff td.message {
+  color:            inherit;
+}
+
 .diff td.preamble {
   color:            olive;
 }
@@ -228,6 +252,10 @@ li.current a {
 
 .diff td.insertion {
   color:            green;
+}
+
+.diff td.binary {
+  color:            teal;
 }
 
 .diff td.context {

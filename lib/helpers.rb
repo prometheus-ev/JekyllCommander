@@ -91,6 +91,10 @@ module JekyllCommander
       File.expand_path(u2(File.join('/', file)), '/')
     end
 
+    def path_for_action(action, file = nil)
+      relative_path("#{file};#{action}")
+    end
+
     def link_to(name, url, html_options = {})
       html_tag(:a, name, html_options.merge(:href => url_for(url)))
     end
@@ -108,7 +112,7 @@ module JekyllCommander
     end
 
     def link_to_action(action, file, url = nil)
-      link_to(action.capitalize, url || relative_path("#{file};#{action}"))
+      link_to(action.capitalize, url || path_for_action(action, file))
     end
 
     def language_links(page, current_lang = page.lang)
@@ -254,6 +258,7 @@ module JekyllCommander
           @dir  = @base
         elsif File.file?(@real_path)
           @file = @base
+          @file_url = url_for_file(path_info) + u(';show') if binary?(path_info)
         end
 
         path_info
@@ -320,6 +325,7 @@ module JekyllCommander
       links = []
       links <<  'edit'              if @file
       links << ['show', @file_url]  if @file_url
+      links <<  'log'
       links.concat(%w[diff revert]) if dirty?(@real_path)
 
       links.map { |action, url|
@@ -453,13 +459,17 @@ module JekyllCommander
       }.join('/')
     end
 
-    def annotated_diff(path)
-      git.diff(path).map { |line|
+    def annotated_diff(path, sha = nil)
+      (sha ? git.show(sha, path) : git.diff(path)).map { |line|
         type = case line
+          when /\Acommit\s/                             then :commit
+          when /\A[A-Z]\w+:/                            then :header
+          when /\A {4}/                                 then :message
           when /\A(?:diff|index|new|deleted|[+-]{3})\s/ then :preamble
           when /\A@@\s/                                 then :hunk
           when /\A-/                                    then :deletion
           when /\A\+/                                   then :insertion
+          when /\ABinary file/                          then :binary
           else                                               :context
         end
 
@@ -473,12 +483,27 @@ module JekyllCommander
       }
     end
 
-    def publish?
+    def get_logs(path = nil, tags = false)
       git.fetch
 
-      @tags = git.tags
-      @logs = git.log(['origin', @tags.empty? ? 'HEAD' : "#{@tags.first.name}.."])
+      @tags = git.tags if tags
+      heads = [@tags.blank? ? 'HEAD' : "#{@tags.first.name}..", 'origin']
 
+      commits = [heads, *heads].map { |commit|
+        git.log(commit, :path => path)
+      }
+
+      l, r = commits[1..-1].each { |log| log.map! { |commit| commit.id } }
+      l, r = l - r, r - l
+
+      @logs = commits[0].map { |commit|
+        i = commit.id
+        [l.include?(i) ? 'local' : r.include?(i) ? 'remote' : 'common', commit]
+      }
+    end
+
+    def publish?
+      get_logs(nil, true)
       @logs.any? || @tags.any?
     end
 
@@ -553,7 +578,7 @@ module JekyllCommander
       @file_type ||= FileMagic.fm(:mime).file(@real_path)
     end
 
-    def binary?
+    def binary?(path_info = path_info)
       defined?(@is_binary) ? @is_binary : @is_binary =
         [:file, :series].include?(Page.type(path_info)) && file_type !~ /\Atext\//
     end

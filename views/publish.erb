@@ -21,15 +21,5 @@
 
 <% unless @logs.empty? %>
 <hr />
-
-<table class="commit_log">
-<% for log in @logs %>
-  <tr>
-    <td class="date"><%= log.date.strftime('%Y-%m-%d %H:%M:%S %Z') %></td>
-    <td class="author"><%=h log.author.name %></td>
-    <td>-</td>
-    <td><%=h log.message %></td>
-  </tr>
-<% end %>
-</table>
+<%= partial :log %>
 <% end %>
