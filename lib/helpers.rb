@@ -483,6 +483,8 @@ module JekyllCommander
     end
 
     def publish(tag)
+      git.pull or return
+
       if tag == '_new'
         git.tag(tag = "jc-#{Time.now.to_f}")
       else
@@ -490,8 +492,7 @@ module JekyllCommander
         git.delete_tag(tag)
       end
 
-      git.push
-      git.push_tag(tag)
+      git.push && git.push_tag(tag) unless git.failed?
     end
 
     def rake(*args)
