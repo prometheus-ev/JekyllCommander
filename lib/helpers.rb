@@ -107,6 +107,10 @@ module JekyllCommander
       end
     end
 
+    def link_to_action(action, file, url = nil)
+      link_to(action.capitalize, url || relative_path("#{file};#{action}"))
+    end
+
     def language_links(page, current_lang = page.lang)
       Page::LANGUAGES.map { |lang|
         if lang == current_lang
@@ -240,6 +244,8 @@ module JekyllCommander
         path_info = request_info
         path_info, @action = $1, $2 if path_info =~ PATH_INFO_RE
 
+        @action ||= 'edit'
+
         @real_path = real_path(path_info)
         @base = File.basename(path_info)
         @type = Page.type(path_info)
@@ -260,8 +266,8 @@ module JekyllCommander
 
     def relative_pwd
       @relative_pwd ||= begin
-        _path_info = path_info
-        @file ? File.dirname(_path_info) : _path_info
+        _path_info = path_info  # populate ivars
+        @dir ? _path_info : File.dirname(_path_info)
       end
     end
 
@@ -308,6 +314,28 @@ module JekyllCommander
       end
 
       links.unshift(link_to('ROOT', '/'))
+    end
+
+    def file_links
+      links = []
+      links <<  'edit'              if @file
+      links << ['show', @file_url]  if @file_url
+      links.concat(%w[diff revert]) if dirty?(@real_path)
+
+      links.map { |action, url|
+        link_to_action(action, @file, url) unless action == @action
+      }.compact
+    end
+
+    def status_links_for(file, type)
+      links = %w[diff revert]
+
+      case type
+        when 'conflict'  then links.delete('revert')
+        when 'untracked' then links = %w[add]
+      end
+
+      links.map { |action| link_to_action(action, file) }
     end
 
     def real_params

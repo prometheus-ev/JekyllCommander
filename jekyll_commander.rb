@@ -52,6 +52,7 @@ if opt[:logger] == true
 end
 
 configure { set opt }
+configure(:development) { require 'ruby-debug' }
 
 include JekyllCommander::Routes
 helpers JekyllCommander::Helpers

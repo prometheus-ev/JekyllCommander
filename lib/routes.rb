@@ -142,6 +142,10 @@ module JekyllCommander
       erb :search
     end
 
+    get '/*;edit' do
+      render_page || file_not_found
+    end
+
     get '/*;*' do
       not_found
     end
@@ -316,7 +320,7 @@ module JekyllCommander
     end
 
     def delete_folder
-      git.rm(@real_path, :recursive => true)
+      git.rm(@real_path, :ignore_unmatch => true, :recursive => true)
       FileUtils.rm_r(@real_path) if File.exist?(@real_path)
 
       flash :notice => "Folder `#{@base}' successfully deleted."
@@ -340,15 +344,11 @@ module JekyllCommander
     end
 
     def delete_file
-      git.rm(@real_path)
+      git.rm(@real_path, :ignore_unmatch => true)
+      FileUtils.rm_f(@real_path) if File.exist?(@real_path)
 
-      if File.exist?(@real_path)
-        flash :error => "Unable to delete file `#{@base}'."
-        redirect relative_url(@file)
-      else
-        flash :notice => "File `#{@base}' successfully deleted."
-        redirect relative_url
-      end
+      flash :notice => "File `#{@base}' successfully deleted."
+      redirect relative_url
     end
 
   end

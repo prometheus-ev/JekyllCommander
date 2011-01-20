@@ -25,6 +25,35 @@
         : <strong><%= link_to_user %></strong>
       ]</div>
 
+      <div id="site-actions">
+        <%= link_to status_summary('/'), root_path(';status'), :title => 'Root status' %> |
+        <%= link_to 'Save changes',      root_path(';save') %> |
+        <%= link_to 'Publish site',      root_path(';publish') %>
+      </div>
+
+      <div id="actions">
+        <%= link_to status_summary, relative_path(';status'), :title => 'Folder status' %> |
+        <%= link_to "New #{@type}", relative_path(";new_#{@type}") %> |
+        <%= link_to 'New folder',   relative_path(';new_folder') %>
+
+        <br style="margin-bottom: 0.9em" />
+
+      <% if path_info == '/' %>
+        <%= form_delete 'Reset' %> |
+        <%= form :post, root_path(';update') %>
+          <p><input type="submit" value="Update" /></p>
+        </form>
+      <% elsif @file %>
+        <%= form_delete @type.to_sym, relative_path(@file) %>
+      <% else %>
+        <%= form_delete :folder %>
+      <% end %>
+
+      <% unless (links = file_links).empty? %>
+        &nbsp;<%= links.join(' | ') %>
+      <% end %>
+      </div>
+
       <div id="trail">
         <%= trail_links.join(' / ') %>
       </div>
@@ -51,31 +80,6 @@
           <li<%= ' class="current"' if file == @file %>><%= link_to_file(file) %></li>
         <% end %>
         </ul>
-      </div>
-
-      <div id="actions">
-        <%= link_to status_summary, relative_path(';status'), :title => 'Folder status' %> |
-        <%= link_to "New #{@type}", relative_path(";new_#{@type}") %> |
-        <%= link_to 'New folder',   relative_path(';new_folder') %>
-
-      <% unless @file %>
-        <br style="margin-bottom: 0.9em" />
-      <% end %>
-
-      <% if path_info == '/' %>
-        <%= form_delete 'Reset copy!' %> |
-        <%= form :post, root_path(';update') %>
-          <p><input type="submit" value="Update copy" /></p>
-        </form>
-      <% else %>
-        <%= form_delete :folder unless @file %>
-      <% end %>
-      </div>
-
-      <div id="site-actions">
-        <%= link_to status_summary('/'), root_path(';status'), :title => 'Root status' %> |
-        <%= link_to 'Save changes',      root_path(';save') %> |
-        <%= link_to 'Publish site',      root_path(';publish') %>
       </div>
     </div>
 

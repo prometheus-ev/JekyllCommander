@@ -85,7 +85,6 @@ iframe {
   border-right:     2px dashed gray;
   width:            286px;
   overflow:         auto;
-  padding-bottom:   6px;
 }
 
 #loginfo {
@@ -96,8 +95,14 @@ iframe {
   margin-bottom:    0;
 }
 
-#trail {
-  margin-top:       2px;
+#site-actions, #actions, #trail {
+  border-top:       2px dashed gray;
+  padding-top:      6px;
+  margin-top:       11px;
+}
+
+#actions form, #actions form p {
+  display:          inline;
 }
 
 #search {
@@ -118,24 +123,14 @@ iframe {
 }
 
 #files {
-  max-height:       520px;
+  max-height:       450px;
   overflow:         auto;
-  margin-bottom:    6px;
+  margin-top:       6px;
 }
 
 #files ul {
   padding-left:     18px;
-  margin-bottom:    6px;
-}
-
-#actions form, #actions form p {
-  display:          inline;
-}
-
-#site-actions {
-  border-top:       2px dashed gray;
-  padding-top:      6px;
-  margin-top:       11px;
+  margin:           0;
 }
 
 #main {

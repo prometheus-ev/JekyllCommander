@@ -9,19 +9,12 @@
   <%= link_to 'Cancel', relative_path %>
 </form>
 
-<%= form_delete :file, relative_path(@file) %>
-
-<br />
-
-<% url  = url_for_file(@path_info) + u(';show')
-   link = %Q{<h3>[#{link_to 'Show', url}]</h3>} %>
+<% @file_url = url_for_file(@path_info) + u(';show') %>
 
 <% if file_type =~ /\Aimage\// %>
-  <%= link.insert(4, 'Preview ') %>
+  <br />
 
-  <iframe src="<%= url %>" width="90%" height="500" name="<%= @file %>">
+  <iframe src="<%= @file_url %>" width="90%" height="500" name="<%= @file %>">
     <p>No iframe support? Need a <a href="http://browser-update.org/de/update.html">better web browser?</a></p>
   </iframe>
-<% else %>
-  <%= link %>
 <% end %>

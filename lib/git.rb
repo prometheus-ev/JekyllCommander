@@ -83,8 +83,16 @@ module JekyllCommander
         git_cmd(:add, [], :path => path)
       end
 
+      def checkout(*args)
+        git_cmd(:checkout, args)
+      end
+
       def checkout_index(path = nil, *args)
         git_cmd(:checkout_index, args, :path => path)
+      end
+
+      def checkout_path(path = nil, *args)
+        git_cmd(:checkout, args, :path => path)
       end
 
       def clone(repo_url, *args, &block)
@@ -175,11 +183,11 @@ module JekyllCommander
 
       def revert(path = nil)
         reset(path, :quiet => true)
-        checkout_index(path, :index => true, :force => true)
+        checkout_path(path, :force => true)
       end
 
       def rm(path, *args)
-        args.last[:r] = args.last.delete(:recursive) if args.last.is_a?(Hash)
+        translate_options!(args.last, :recursive => :r)
         git_cmd(:rm, args, :path => path, :force => true)
       end
 
@@ -280,6 +288,12 @@ module JekyllCommander
         handle_error(CommandError.new(err.command, err.err))
       else
         handle_success(res, &block)
+      end
+
+      def translate_options!(hash, translations)
+        translations.each { |from, to|
+          hash[to] = hash.delete(from) if hash.has_key?(from) && !hash.has_key?(to)
+        } if hash.is_a?(Hash)
       end
 
       self  # must be the last statement! ;-)

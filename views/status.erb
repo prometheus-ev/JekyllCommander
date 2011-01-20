@@ -10,15 +10,8 @@
   <% for file in files.sort %>
     <li>
       <%= link_to_file file %>
-    <% if type == 'conflict' %>
-      [<%= link_to 'Diff', relative_path("#{file};diff") %>]
-    <% elsif type == 'untracked' %>
-      [<%= link_to 'Add',  relative_path("#{file};add") %>]
-    <% elsif type == 'deleted' %>
-      [<%= link_to 'Undo', relative_path("#{file};revert") %>]
-    <% else %>
-      [<%= link_to 'Diff', relative_path("#{file};diff") %> |
-       <%= link_to 'Undo', relative_path("#{file};revert") %>]
+    <% unless (links = status_links_for(file, type)).empty? %>
+      [<%= links.join(' | ') %>]
     <% end %>
     </li>
   <% end %>

@@ -5,9 +5,3 @@
   <tr><td class="<%= type %>"><%= row %></td></tr>
 <% end %>
 </table>
-
-<p>
-  [<%= link_to 'Edit', relative_path(@file) %> |
-   <%= link_to 'Undo', relative_path("#{@file};revert") %>]
-</p>
-
