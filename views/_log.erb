@@ -1,0 +1,10 @@
+<table class="commit_log">
+<% for type, log in @logs %>
+  <tr class="<%= type %>">
+    <td class="date"><%= log.date.strftime('%Y-%m-%d %H:%M:%S %Z') %></td>
+    <td class="author"><%=h log.author.name %></td>
+    <td>-</td>
+    <td><%= link_to h(log.message.split($/).first), path_for_action('diff', @file) << "?sha=#{log.sha}" %></td>
+  </tr>
+<% end %>
+</table>
