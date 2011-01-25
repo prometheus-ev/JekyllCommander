@@ -9,7 +9,7 @@ module JekyllCommander
     DATE_RE   = %r{\A(\d{4})\W(\d{2})\W(\d{2})\z}
     NUMBER_RE = %r{\A(\d{2})\W(\d{4})\z}
 
-    attr_accessor :date, :author, :subtitle
+    attr_accessor :date, :author, :subtitle, :teaser
 
     def initialize(root, base, title = nil, options = {})
       super(root, base, title, DEFAULT_OPTIONS + options)
@@ -23,6 +23,7 @@ module JekyllCommander
       default_header = {
         :title        => title,
         :subtitle     => subtitle,
+        :teaser       => teaser,
         :layout       => 'series',
         :descriptions => [],
         :author       => author,
