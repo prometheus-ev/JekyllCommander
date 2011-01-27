@@ -11,10 +11,11 @@ function add_header_field() {
   }
   $('#main form').data('add_header_filed_count', count);
 
-  var content = '<p><input type="text" name="add_header_key_';
-  content = content + count + '" size="15" /> : ';
-  content = content + '<input type="text" name="add_header_val_';
-  content = content + count + '" size="35" /></p>';
+  var content = '<p><label for="header_key_count">Name:</label><label for="header_val_count"'
+    + ' style="padding-left: 120px;">Wert:</label><br />'
+    + '<input type="text" name="add_header_key_count" size="15" id="header_key_count" /> : '
+    + '<input type="text" name="add_header_val_count" size="35" id="header_val_count" /></p>';
+  content = content.replace(/count/g, count);
 
   $('#add-header-field').before(content);
 }
