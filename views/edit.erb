@@ -12,6 +12,9 @@
 
 <%= images_and_descriptions_fields(descriptions) if descriptions %>
 
+<p id="add-header-field"><input type="button" value="Add header field" onclick="add_header_field()" /></p>
+
+
 <% if body = @page.body %>
   <p>
     <label for="page_body">Body:</label><br />

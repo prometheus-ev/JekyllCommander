@@ -345,6 +345,13 @@ module JekyllCommander
     end
 
     def real_params
+      params.select { |k, _| k.to_s =~ /\Aadd_header_key/ }.size.
+        times { |i|
+          key, val = "add_header_key_#{no = i + 1}", "add_header_val_#{no}"
+          params[:header][params[key]] = params[val] unless params[key].empty?
+          params.delete(key); params.delete(val)
+        }
+
       if series? and descriptions = params[:header].delete('descriptions')
         params[:header][:descriptions] = descriptions.
           inject([]) { |a, (k, v)| a[k.to_i] = v; a }
