@@ -21,10 +21,10 @@ function add_header_field() {
 }
 
 $(document).ready(function() {
-  if (!window.location.hash) {
-    var i = $('#main input[type=text]').first()
+  var i = $('#main input[type=text]').first();
+  if (i) {
     var v = i.val();
-    if (v && v.trim().length === 0) {
+    if (v.trim().length < 1) {
       i.focus();
     }
   }
