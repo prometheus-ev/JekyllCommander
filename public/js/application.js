@@ -3,21 +3,19 @@ function autocomplete_source(elem) {
 }
 
 function add_header_field() {
-  var count = $('#main form').data('add_header_filed_count');
-  if (count) {
-    ++count;
-  } else {
-    count = 1;
+  var name = prompt('Name:');
+
+  if (!name || name.trim().length < 1) {
+    return;
   }
-  $('#main form').data('add_header_filed_count', count);
 
-  var content = '<p><label for="header_key_count">Name:</label><label for="header_val_count"'
-    + ' style="padding-left: 120px;">Wert:</label><br />'
-    + '<input type="text" name="add_header_key_count" size="15" id="header_key_count" /> : '
-    + '<input type="text" name="add_header_val_count" size="35" id="header_val_count" /></p>';
-  content = content.replace(/count/g, count);
+  var key = name.trim().replace(/\s+/, '_').toLowerCase();
+  var id  = '_header_' + key;
 
-  $('#add-header-field').before(content);
+  $('#header_fields').append('<p>' +
+    '<label for="' + id + '">' + name + '</label>:<br />' +
+    '<input type="text" id="' + id + '" name="header[' + key + ']" size="50" />' +
+  '</p>');
 }
 
 $(document).ready(function() {
@@ -53,4 +51,8 @@ $(document).ready(function() {
       'option', 'source', autocomplete_source()
     );
   });
+
+  $('<input type="button" value="Add header field" />')
+    .insertAfter('#header_fields')
+    .click(add_header_field);
 });

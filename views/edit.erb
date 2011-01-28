@@ -5,15 +5,13 @@
 </p>
 
 <%= form :put, relative_path(@file), series? %>
+
 <% if header = @page.header %>
   <% descriptions = header.delete(:descriptions) if series? %>
-  <%= header_fields(header) %>
+  <div id="header_fields"><%= header_fields(header) %></div>
 <% end %>
 
 <%= images_and_descriptions_fields(descriptions) if descriptions %>
-
-<p id="add-header-field"><input type="button" value="Add header field" onclick="add_header_field()" /></p>
-
 
 <% if body = @page.body %>
   <p>
