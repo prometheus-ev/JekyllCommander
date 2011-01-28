@@ -5,7 +5,14 @@ function autocomplete_source(elem) {
 function add_header_field() {
   var name = prompt('Name:');
 
-  if (!name || name.trim().length < 1) {
+  var names = $('#header_fields input').map(function() {
+    return this.name;
+  });
+
+  if (jQuery.inArray('header[' + name + ']', names) > -1) {
+    alert('A field named "' + name + '" already exists.');
+    return;
+  } else if (!name || name.trim().length < 1) {
     return;
   }
 
