@@ -220,7 +220,7 @@ module JekyllCommander
 
     def destroy(git = nil)
       translated(:fullpath).reject { |path|
-        git.rm(path) if git
+        git.rm(path, :ignore_unmatch => true) if git
         File.exist?(path) ? File.delete(path) : true
       }.each { |path|
         @errors << "Unable to delete file `#{path}'."
