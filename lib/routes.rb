@@ -223,11 +223,12 @@ module JekyllCommander
       return unless @file
       return redirect(relative_url) unless page
 
-      path = relative_path(page.slug)
+      series = page.number if @action == 'preview_series'
+
+      path = series ? root_path : relative_path(page.slug)
       path = [page.lang, path] if page.multilang?
 
-      preview(path,
-        *@action == 'preview_series' ?  [:preview, page.number] : [@action])
+      preview(path, *series ? [:preview, series] : [@action])
     end
 
     def render_folder

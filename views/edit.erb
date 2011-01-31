@@ -3,7 +3,7 @@
 <p>
   <%= language_links(@page) if @page.multilang? %>
 <% if series? %>
-  [<%= link_to('Preview this image series', path_for_action('preview_series', @file), :target => '_blank') %>]
+  [<%= link_to('Preview this image series as current', path_for_action('preview_series', @file), :target => '_blank') %>]
 <% end %>
 </p>
 
