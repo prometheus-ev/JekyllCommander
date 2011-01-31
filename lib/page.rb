@@ -14,7 +14,7 @@ module JekyllCommander
       end
     }
 
-    TYPE = Hash.new(:page).merge(
+    TYPE_FOR_BASE = Hash.new(:page).merge(
       '_includes'   => :include,
       '_layouts'    => :layout,
       '_posts'      => :post,
@@ -22,6 +22,11 @@ module JekyllCommander
       'javascripts' => :javascript,
       'stylesheets' => :stylesheet,
       'series'      => :series
+    )
+
+    KLASS_FOR_TYPE = Hash.new(name).merge(
+      :post   => 'Post',
+      :series => 'Series'
     )
 
     LANGUAGES = %w[en de]
@@ -57,7 +62,7 @@ module JekyllCommander
     class << self
 
       def type(path)
-        TYPE[path.sub(%r{\A/}, '').sub(%r{/.*}, '')]
+        TYPE_FOR_BASE[path.sub(%r{\A/}, '').sub(%r{/.*}, '')]
       end
 
       def lang(path)
@@ -70,7 +75,7 @@ module JekyllCommander
 
         base, name = File.split(path)
 
-        new(root, base, nil, [
+        eval(KLASS_FOR_TYPE[type(base)]).new(root, base, nil, [
           [:lang,      lang(name)],
           [:slug,      name.sub(EXT_RE, '')],
           [:ext,       $2],

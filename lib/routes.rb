@@ -65,7 +65,7 @@ module JekyllCommander
       redirect url_for_file(path_info)
     end
 
-    get %r{/.*;(?:site|staging|preview)} do
+    get %r{/.*;(?:site|staging|preview(?:_series)?)} do
       preview_folder || preview_page || file_not_found
     end
 
@@ -226,7 +226,8 @@ module JekyllCommander
       path = relative_path(page.slug)
       path = [page.lang, path] if page.multilang?
 
-      preview(path, @action)
+      preview(path,
+        *@action == 'preview_series' ?  [:preview, page.number] : [@action])
     end
 
     def render_folder

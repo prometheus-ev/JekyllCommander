@@ -11,8 +11,13 @@ module JekyllCommander
 
     attr_accessor :date, :author, :subtitle, :teaser
 
+    attr_reader :number
+
     def initialize(root, base, title = nil, options = {})
       super(root, base, title, DEFAULT_OPTIONS + options)
+
+      @number = base.split(%r{(/)})[-3..-1].reverse.join
+      @number = nil unless @number =~ NUMBER_RE
     end
 
     def slug

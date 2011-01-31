@@ -522,15 +522,15 @@ module JekyllCommander
 
     def rake(*args)
       # TODO: error handling!
-      Dir.chdir(repo_root) { system('rake', *args) }
+      Dir.chdir(repo_root) { system('rake', *args.map(&:to_s)) }
     end
 
-    def preview(path, type = nil)
+    def preview(path, type = nil, series = nil)
       target = options.send(type || :preview)
 
       if target
         if type.to_s == 'preview'
-          rake
+          series ? rake(:series_preview, "NUM=#{series}") : rake
           target %= user
         end
 
