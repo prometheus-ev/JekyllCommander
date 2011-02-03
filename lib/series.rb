@@ -9,7 +9,7 @@ module JekyllCommander
     DATE_RE   = %r{\A(\d{4})\W(\d{2})\W(\d{2})\z}
     NUMBER_RE = %r{\A(\d{2})\W(\d{4})\z}
 
-    attr_accessor :date, :author, :subtitle, :teaser
+    attr_accessor :date, :author, :subtitle, :teaser, :collection
 
     attr_reader :number
 
@@ -29,6 +29,7 @@ module JekyllCommander
         :title        => title,
         :subtitle     => subtitle,
         :teaser       => teaser,
+        :collection   => collection,
         :layout       => 'series',
         :descriptions => [],
         :author       => author,
