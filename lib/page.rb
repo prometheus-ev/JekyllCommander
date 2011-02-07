@@ -114,9 +114,7 @@ module JekyllCommander
         else
           self.render = false
 
-          if ext == 'yml'
-            header = YAML.load_file(fullpath(lang))
-          elsif ext == 'xml'
+          if ext == 'xml'
             body, header = PageFile.read_yaml(basepath, filename(lang))
           else
             body = File.read(fullpath(lang))
