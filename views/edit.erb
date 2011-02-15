@@ -35,10 +35,12 @@
   </p>
 <% end %>
 
+<% unless series? %>
   <p>
     <label for="page_slug">Slug:</label><br />
     <input type="text" name="slug" id="page_slug" value="<%= @page.slug %>" size="50" />
   </p>
+<% end %>
 
   <p>
     <input type="submit" value="Save <%= @type %>" /> |
