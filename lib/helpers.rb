@@ -350,6 +350,8 @@ module JekyllCommander
           inject([]) { |a, (k, v)| a[k.to_i] = v; a }
       end
 
+      params[:header].each { |k, v| params[:header][k] = nil if v == '' }
+
       @real_params ||= params.reject { |key, _|
         key == '_method' || key == 'splat'
       }
