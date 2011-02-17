@@ -345,9 +345,19 @@ module JekyllCommander
     end
 
     def real_params
-      if series? and descriptions = params[:header].delete('descriptions')
-        params[:header][:descriptions] = descriptions.
-          inject([]) { |a, (k, v)| a[k.to_i] = v; a }
+      if series?
+        if descriptions = params[:header].delete('descriptions')
+          params[:header][:descriptions] = descriptions.
+            inject([]) { |a, (k, v)| a[k.to_i] = v; a }
+        end
+
+        if (collection = params[:header]['collection']) && !collection.empty?
+          if (collection = collection.to_i) > 0
+            params[:header]['collection'] = collection
+          else
+            flash :error => "Collection ID is invalid."
+          end
+        end
       end
 
       params[:header].each { |k, v| params[:header][k] = nil if v == '' }
