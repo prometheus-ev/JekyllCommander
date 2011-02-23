@@ -360,7 +360,9 @@ module JekyllCommander
         end
       end
 
-      params[:header].each { |k, v| params[:header][k] = nil if v == '' }
+      if params[:header]
+        params[:header].each { |k, v| params[:header][k] = nil if v == '' }
+      end
 
       @real_params ||= params.reject { |key, _|
         key == '_method' || key == 'splat'
