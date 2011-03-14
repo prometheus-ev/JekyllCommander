@@ -4,16 +4,16 @@ JekyllCommander is a Sinatra based web application, to give non-technical users
 the ability to maintain a complex Jekyll website, including git version control,
 without any scary terminal experiences.
 
-JekyllCommander have been developed to fit exactly our needs. Some parts are
+JekyllCommander has been developed to fit exactly our needs. Some parts are
 highly specific to our Website and our workflow. But maybe you can take some
 advantage of this code, anyway.
 
-We are thinking about changing JekyllCommander to be more generic, but you now:
+We are thinking about changing JekyllCommander to be more generic, but you know:
 Fork it, if we are to slow for you. ;)
 
 == INSTALLATION AND USAGE
 
-Will hopefully be written in the near futur...
+Will hopefully be written in the near future...
 
 == AUTHORS
 
@@ -29,14 +29,14 @@ Icons by <http://famfamfam.com>.
 Copyright (C) 2010-2011 University of Cologne,
 Albertus-Magnus-Platz, 50923 Cologne, Germany
 
-jekyll-localization is free software: you can redistribute it and/or modify it under
+JekyllCommander is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-jekyll-localization is distributed in the hope that it will be useful, but WITHOUT
+JekyllCommander is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-jekyll-localization. If not, see <http://www.gnu.org/licenses/>.
+JekyllCommander. If not, see <http://www.gnu.org/licenses/>.
