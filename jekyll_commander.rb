@@ -38,6 +38,7 @@ DEFAULT_OPTIONS = {
     . .. .git .gitignore
     _site _site.tmp _site.old
     _plugins favicon.ico
+    .htaccess
   ]
 }
 
