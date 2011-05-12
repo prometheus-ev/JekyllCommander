@@ -273,3 +273,11 @@ li.current a {
 #page_number {
   font-family:      monospace;
 }
+
+#helper_help {
+  border:           2px dashed gray;
+  background-color: silver;
+  padding:          10px;
+  width:            670px;
+  display:          none;
+}

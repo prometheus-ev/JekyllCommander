@@ -31,8 +31,11 @@
     <% else %>
       <strong>No markup</strong>
     <% end %>
+    <strong>Help:</strong>
+    <a href="#" onclick="$('#helper_help').show()">Path/URL helper</a>
     </small>
   </p>
+  <%= partial :helper_help %>
 <% end %>
 
 <% unless series? %>
