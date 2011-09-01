@@ -29,7 +29,7 @@ $(document).ready(function() {
   var i = $('#main input[type=text]').first();
   if (i) {
     var v = i.val();
-    if (v.trim().length < 1) {
+    if (v && v.trim().length < 1) {
       i.focus();
     }
   }
