@@ -1,3 +1,4 @@
+require 'English'
 require 'jekyll/convertible'
 
 module JekyllCommander
