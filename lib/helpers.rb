@@ -557,7 +557,7 @@ module JekyllCommander
 
     def preview_for(data, type = nil)
       @_preview_template ||= File.read(
-        File.join(settings.public, %w[markitup templates preview.html])
+        File.join(settings.public_folder, %w[markitup templates preview.html])
       )
 
       @_preview_template.sub(/<!-- content -->/, case type.to_s
