@@ -121,8 +121,8 @@ module JekyllCommander
     post '/;publish' do
       publish(params[:tag])
 
-      if options.site
-        redirect options.site
+      if settings.site
+        redirect settings.site
       else
         flash :notice => 'Site successfully published.'
         redirect root_url

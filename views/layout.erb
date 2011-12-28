@@ -20,7 +20,7 @@
 
     <div id="sidebar">
       <div id="loginfo">[
-        <%= options.site ? link_to(repo_name, options.site) : repo_name %>
+        <%= settings.site ? link_to(repo_name, settings.site) : repo_name %>
         <%= link_to_site %> <%= link_to_staging %> <%= link_to_preview %>
         : <strong><%= link_to_user %></strong>
       ]</div>

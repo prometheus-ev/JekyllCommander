@@ -135,7 +135,7 @@ module JekyllCommander
 
     def link_to_preview(name = 'Preview', html_options = {})
       type = html_options.delete(:__type__) || :preview
-      return unless options.send(type)
+      return unless settings.send(type)
 
       img = image_tag("#{type}.png", :alt => type)
 
@@ -307,7 +307,7 @@ module JekyllCommander
     end
 
     def get_files
-      @files = Dir.entries(pwd).sort - options.ignore
+      @files = Dir.entries(pwd).sort - settings.ignore
     end
 
     def trail_links
@@ -378,7 +378,7 @@ module JekyllCommander
     end
 
     def user_config
-      @user_config ||= options.users && options.users[user] || {}
+      @user_config ||= settings.users && settings.users[user] || {}
     end
 
     def user_name
@@ -386,19 +386,19 @@ module JekyllCommander
     end
 
     def user_email
-      @user_email ||= user_config[:email] || options.email % user
+      @user_email ||= user_config[:email] || settings.email % user
     end
 
     def repo_name
-      @repo_name ||= File.basename(options.repo, Git::GIT_DIR)
+      @repo_name ||= File.basename(settings.repo, Git::GIT_DIR)
     end
 
     def repo_root
-      @repo_root ||= File.join(options.tmpdir, "#{repo_name}-#{u(user)}")
+      @repo_root ||= File.join(settings.tmpdir, "#{repo_name}-#{u(user)}")
     end
 
     def git
-      @git ||= Git.new(repo_root, options.logger) { |err|
+      @git ||= Git.new(repo_root, settings.logger) { |err|
         flash :error => "#{err}\n\n#{err.err}"
         nil
       }
@@ -408,7 +408,7 @@ module JekyllCommander
       if git.exist?
         pull if pull?
       else
-        git.clone(options.repo) { |config|
+        git.clone(settings.repo) { |config|
           config['user.name']  = user_name
           config['user.email'] = user_email
 
@@ -540,7 +540,7 @@ module JekyllCommander
     end
 
     def preview(path, type = nil, series = nil)
-      target = options.send(type || :preview)
+      target = settings.send(type || :preview)
 
       if target
         if type.to_s == 'preview'
@@ -568,7 +568,7 @@ module JekyllCommander
     end
 
     def search(query, type = :name)
-      cmd, ignore, path_re = [], options.ignore, path_re(path = pwd)
+      cmd, ignore, path_re = [], settings.ignore, path_re(path = pwd)
 
       case type.to_s
         when 'name'
