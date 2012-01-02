@@ -365,7 +365,7 @@ module JekyllCommander
       end
 
       @real_params ||= params.reject { |key, _|
-        key == '_method' || key == 'splat'
+        key == '_method' || key == 'splat' || key == 'captures'
       }
     end
 
