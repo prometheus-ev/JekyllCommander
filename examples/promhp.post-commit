@@ -1,0 +1,8 @@
+#! /bin/bash
+
+git="/usr/bin/env -u GIT_DIR git"
+
+$git checkout master || exit 1
+$git pull            || exit 1
+
+$git push --tags origin master
