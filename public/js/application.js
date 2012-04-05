@@ -48,20 +48,10 @@ $(document).ready(function() {
       return false;
     },
     select: function(event, ui) {
-      var href = $(ui.item).val();
+      var val = $(ui.item).val();
+      var dir = window.location.href.split('/').pop();
 
-      var path = window.location.pathname.split('/');
-      var name = path.pop();
-
-      if (name === '') {
-        name = path.pop();
-      }
-
-      if (name.indexOf('.') < 0) {
-        href = name + '/' + href;
-      }
-
-      window.location.href = href;
+      window.location.href = (dir.indexOf('.') < 0 ? dir + '/' : '') + val;
 
       return false;
     }
