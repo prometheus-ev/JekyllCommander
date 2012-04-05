@@ -265,6 +265,10 @@ module JekyllCommander
       end
     end
 
+    def level
+      path_info.count('/')
+    end
+
     def pwd
       @pwd ||= real_path(relative_pwd)
     end
@@ -308,6 +312,15 @@ module JekyllCommander
 
     def get_files
       @files = Dir.entries(pwd).sort - settings.ignore
+
+      if [:post, :series].include?(@type) && level < 3
+        e, i = [0], -1.method(:*)
+
+        @files = @files.sort_by { |n|
+          n =~ /\A(?:\d+-?)*/; a, b = $&, $'
+          [a.empty? ? e : a.split('-').map!(&:to_i).map!(&i), b]
+        }
+      end
     end
 
     def trail_links
@@ -599,7 +612,7 @@ module JekyllCommander
 
     def series?
       defined?(@is_series) ? @is_series : @is_series =
-        page.type == :series && path_info.count('/') > 3
+        page.type == :series && level > 3
     end
 
     def page

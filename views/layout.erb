@@ -44,7 +44,7 @@
           <p><input type="submit" value="Update" /></p>
         </form>
       <% elsif @file %>
-        <%= form_delete @type.to_sym, relative_path(@file) %>
+        <%= form_delete @type, relative_path(@file) %>
       <% else %>
         <%= form_delete :folder %>
       <% end %>
