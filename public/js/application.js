@@ -49,9 +49,13 @@ $(document).ready(function() {
     },
     select: function(event, ui) {
       var val = $(ui.item).val();
-      var dir = window.location.href.split('/').pop();
+      var dir = window.location.pathname.split('/').pop();
 
-      window.location.href = (dir.indexOf('.') < 0 ? dir + '/' : '') + val;
+      if (dir !== '' && dir.indexOf('.') < 0) {
+        val = dir + '/' + val;
+      }
+
+      window.location.href = val;
 
       return false;
     }
