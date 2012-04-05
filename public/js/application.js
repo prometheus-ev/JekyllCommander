@@ -48,7 +48,11 @@ $(document).ready(function() {
       return false;
     },
     select: function(event, ui) {
-      window.location.href = $(ui.item).val();
+      var val = $(ui.item).val();
+      var dir = window.location.href.split('/').pop();
+
+      window.location.href = (dir.indexOf('.') < 0 ? dir + '/' : '') + val;
+
       return false;
     }
   });

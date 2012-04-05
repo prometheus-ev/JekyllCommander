@@ -598,7 +598,7 @@ module JekyllCommander
       end
 
       stdin, stdout, stderr = Open3.popen3(*cmd)
-      stdout.read.split("\0").each { |path| path.sub!(path_re, '') }
+      stdout.read.split("\0").each { |name| name.sub!(path_re, '') }
     end
 
     def file_type
