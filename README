@@ -72,6 +72,23 @@ the following directory structure:
 
 Will hopefully be written in the near future...
 
+=== Configuration 
+
+In order to configure your installation you will have to create a +config.yamle+ 
+file in the root directory of your installation; an example file
++config.yaml.sample+ is provided, which can be used as starting point for
+your own settings.
+
+    ---
+    :repo:    git@example.com:repos/repo.git
+    :site:    http://example.com
+    :staging: /staging
+    :preview: /preview-%s
+    :email:   %s@example.com
+    
+    :users:
+      jd: { :name: John Doe, :email: jdoe@example.net }
+
 == AUTHORS
 
 * Jens Wille <mailto:jens.wille@uni-koeln.de>
