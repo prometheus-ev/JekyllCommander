@@ -29,12 +29,22 @@ scripts in the "example" folder for a better understanding.
 
 == INSTALLATION AND CONFIGURATION
 
+=== Requirements
+
+* grit - object oriented read/write access to Git repositories via Ruby.
+* jekyll - a simple, blog aware, static site generator.
+* jekyll_commander - a Sinatra based web interface, to maintain a Jekyll website, including git version control.
+* logger - a simple logging utility.
+
+=== Installation
+
 Will hopefully be written in the near future...
 
 == AUTHORS
 
 * Jens Wille <mailto:jens.wille@uni-koeln.de>
 * Arne Eilermann <mailto:eilermann@lavabit.com>
+* Lars Baehren <mailto:lbaehren@uni-koeln.de>
 
 == CREDITS
 
@@ -42,7 +52,7 @@ Icons by <http://famfamfam.com>.
 
 == LICENSE AND COPYRIGHT
 
-Copyright (C) 2010-2011 University of Cologne,
+Copyright (C) 2010-2012 University of Cologne,
 Albertus-Magnus-Platz, 50923 Cologne, Germany
 
 JekyllCommander is free software: you can redistribute it and/or modify it
