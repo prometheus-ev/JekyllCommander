@@ -36,6 +36,38 @@ scripts in the "example" folder for a better understanding.
 * jekyll_commander - a Sinatra based web interface, to maintain a Jekyll website, including git version control.
 * logger - a simple logging utility.
 
+=== Organization of the source code
+
+After checking out a working copy of the source code, you will presented with 
+the following directory structure:
+
+    .
+    |-- examples
+    |-- lib
+    |-- public
+    |   |-- css
+    |   |-- images
+    |   |-- js
+    |   `-- markitup
+    |       |-- sets
+    |       |   |-- default
+    |       |   |   `-- images
+    |       |   |-- html
+    |       |   |   `-- images
+    |       |   |-- markdown
+    |       |   |   `-- images
+    |       |   `-- textile
+    |       |       `-- images
+    |       |-- skins
+    |       |   |-- markitup
+    |       |   |   `-- images
+    |       |   `-- simple
+    |       |       `-- images
+    |       `-- templates
+    |-- tmp
+    `-- views
+
+
 === Installation
 
 Will hopefully be written in the near future...
