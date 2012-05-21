@@ -3,7 +3,12 @@
 :site:    http://example.com
 :staging: /staging
 :preview: /preview-%s
-:email:   %s@example.com
+:email:   '%s@example.com'
+
+:upload_mode:  0644
+:upload_group: www-data
 
 :users:
-  jd: { :name: John Doe, :email: jdoe@example.net }
+  jd:
+    :name:  John Doe
+    :email: jdoe@example.net

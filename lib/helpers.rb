@@ -641,7 +641,11 @@ module JekyllCommander
     end
 
     def write_upload_file(tempfile, path, name)
-      FileUtils.mv(tempfile.path, File.join(path, name))
+      FileUtils.mv(tempfile.path, path = File.join(path, name))
+
+      chmod(path, :upload_mode)
+      chgrp(path, :upload_group)
+
       flash :notice => "File `#{name}' successfully written." if git.add(path)
     end
 
@@ -704,6 +708,31 @@ module JekyllCommander
 
     def pass?
       defined?(@pass) ? @pass : @pass = request_info =~ PASS_RE
+    end
+
+    def chmod(path, mode)
+      mode = get_setting(mode) or return
+
+      if mode.is_a?(Integer) && mode <= 0777
+        FileUtils.chmod(mode, path)
+      else
+        raise ArgumentError, "invalid mode: #{mode.inspect}"
+      end
+    end
+
+    def chown(path, owner, group = nil)
+      owner = get_setting(owner)
+      group = get_setting(group)
+
+      FileUtils.chown(owner, group, path) if owner || group
+    end
+
+    def chgrp(path, group)
+      chown(path, nil, group)
+    end
+
+    def get_setting(key, default = nil)
+      key.is_a?(Symbol) ? settings.respond_to?(key) ? settings.send(key) : default : key
     end
 
   end
