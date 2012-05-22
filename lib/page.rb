@@ -5,12 +5,23 @@ module JekyllCommander
 
   class Page
 
+    ENCODING = Object.const_defined?(:Encoding) ? Encoding.default_external : nil
+
     PageFile = Struct.new(:content, :data) {
       include Jekyll::Convertible
 
       def self.read_yaml(base, name)
         page_file = new
         page_file.read_yaml(base, name)
+
+        if encoding = Page::ENCODING
+          page_file.data.each_value { |val|
+            if val.respond_to?(:force_encoding) && !val.frozen?
+              val.force_encoding(encoding)
+            end
+          }
+        end
+
         [page_file.content, page_file.data]
       end
     }

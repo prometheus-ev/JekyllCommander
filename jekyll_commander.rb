@@ -58,6 +58,8 @@ configure(:development) { require 'ruby-debug' }
 include JekyllCommander::Routes
 helpers JekyllCommander::Helpers
 
+YAML::ENGINE.yamler = 'syck' if YAML.const_defined?(:ENGINE)
+
 unless $0 == __FILE__  # for rackup
   Jekyll_commander = Rack::Builder.new { run Sinatra::Application }.to_app
 end
