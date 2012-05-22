@@ -548,8 +548,10 @@ module JekyllCommander
     end
 
     def rake(*args)
-      # TODO: error handling!
-      Dir.chdir(repo_root) { system('rake', *args.map(&:to_s)) }
+      Dir.chdir(repo_root) {
+        # TODO: error handling!
+        system(get_setting(:rake, 'rake'), *args.map(&:to_s)) 
+      }
     end
 
     def preview(path, type = nil, series = nil)
