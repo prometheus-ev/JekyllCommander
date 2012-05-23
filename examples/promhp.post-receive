@@ -1,0 +1,62 @@
+#! /bin/bash
+
+base="/path/to/base/dir"  # The directory, where the repos of our home page live
+dest="/path/to/http/docs" # Where the generated html files go
+
+git="/usr/bin/env -u GIT_DIR git"
+rsync="/usr/bin/env rsync"
+
+live=""
+stag=""
+
+timestamp="0"
+laststamp="0"
+
+function rake() {
+  /usr/bin/env JEKYLL_ENV="${1:-local}" rake
+}
+
+function update_site() {
+  env="$1"; branch="${2:-master}"
+  echo ">>>>> $env@$branch <<<<<"
+
+  path="$base/$env"
+  site="$path/_site"
+
+  [ -n "$env" ] && cd "$path" || return 1
+
+  curr="$(git symbolic-ref HEAD 2> /dev/null | sed 's:.*/::')"
+
+  $git checkout -q master    || return 1
+  $git pull                  || return 1
+  $git checkout -q "$branch" || return 1
+
+  rake "$env"
+
+  if [ "$env" == "live" ] && [ -d "$site" ]; then
+    $rsync -rtl --delete-delay "$site/" "$dest/"
+  fi
+
+  $git checkout -q "${curr:-master}"
+}
+
+while read oldrev newrev refname; do
+  [[ "$newrev" =~ ^0+$ ]] && continue
+
+  case "$refname" in
+    refs/heads/master )
+      stag="master"
+      ;;
+    refs/tags/* )
+      timestamp="$($git log -1 --pretty=format:%ct "$refname")"
+
+      if [ "$timestamp" -gt "$laststamp" ]; then
+        laststamp="$timestamp"
+        live="${refname##*/}"
+      fi
+      ;;
+  esac
+done
+
+[ -n "$stag" ] && update_site "staging" "$stag"
+[ -n "$live" ] && update_site "live"    "$live"
