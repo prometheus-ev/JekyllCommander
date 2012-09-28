@@ -32,6 +32,7 @@ module JekyllCommander
         :collection   => collection,
         :layout       => 'series',
         :descriptions => [],
+        :repeat       => '',
         :author       => author,
         :date         => date
       }
