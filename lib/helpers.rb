@@ -550,21 +550,19 @@ module JekyllCommander
     def rake(*args)
       Dir.chdir(repo_root) {
         # TODO: error handling!
-        system(get_setting(:rake, 'rake'), *args.map(&:to_s)) 
+        system(get_setting(:rake, 'rake'), *args.map(&:to_s))
       }
     end
 
     def preview(path, type = nil, series = nil)
-      target = settings.send(type || :preview)
-
-      if target
+      if target = settings.send(type || :preview)
         if type.to_s == 'preview'
           series ? rake(:series_preview, "NUM=#{series}") : rake
           target %= user
         end
 
         redirect File.join(target, path).
-          sub(%r{/_posts(?:(/)(?:\d+-){,3}|\z)}, '/blog\1')
+          sub(%r{/_posts(?:(/)(?:\d+-){0,3}|\z)}, '/blog\1')
       else
         flash :error => "Option `#{type}' not set..."
         redirect url_for_file(path_info)
