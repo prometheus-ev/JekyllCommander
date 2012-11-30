@@ -563,7 +563,8 @@ module JekyllCommander
           target %= user
         end
 
-        redirect File.join(target, path)
+        redirect File.join(target, path).
+          sub(%r{/_posts(?:(/)(?:\d+-){,3}|\z)}, '/blog\1')
       else
         flash :error => "Option `#{type}' not set..."
         redirect url_for_file(path_info)
