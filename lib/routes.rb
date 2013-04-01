@@ -2,6 +2,8 @@ module JekyllCommander
 
   module Routes
 
+    extend Sinatra::Delegator
+
     before do
       unless pass?
         ensure_repo
